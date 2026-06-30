@@ -246,7 +246,7 @@ MAX_WORKERS = int(os.getenv("MAX_WORKERS", "2"))
 | LLM returns unparseable JSON | Retry once (`--retry-failed`) |
 | `tkinter not available` (GUI) | Activate your virtual env first, then run `python main.py gui`; on Linux also `sudo apt install python3-tk` |
 | `biopaperminer: command not found` | Run `pip install .` first |
-| Chinese character display issues | Windows terminal: `chcp 65001` |
+| Emoji / Chinese display issues | Windows terminal: run `chcp 65001` to switch to UTF-8; or use `biopaperminer tui` (Rich handles this automatically) |
 
 ---
 

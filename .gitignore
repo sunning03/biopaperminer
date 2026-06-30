@@ -38,3 +38,6 @@ user_config.json
 # pip install artifacts
 *.egg-info/
 biopaperminer.egg-info/
+
+# Reasonix internal (AI assistant working directory)
+.reasonix/

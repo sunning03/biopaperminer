@@ -172,6 +172,8 @@ TUI 特色：
 
 ```bash
 biopaperminer gui
+#如果报错❌ tkinter 不可用，运行
+python main.py gui
 ```
 
 GUI 特色：
@@ -274,7 +276,7 @@ MAX_WORKERS = int(os.getenv("MAX_WORKERS", "2"))
 | LLM 返回 "无法解析JSON" | 重试一次（`--retry-failed`）即可 |
 | `tkinter` 不可用（GUI 模式） | 先激活虚拟环境再运行 `python main.py gui`；Linux 还需 `sudo apt install python3-tk` |
 | `biopaperminer: command not found` | 确保运行了 `pip install .` |
-| 中文显示乱码 | Windows 终端运行 `chcp 65001` |
+| emoji 显示乱码/报错 | Windows 终端运行 `chcp 65001` 切换 UTF-8，或直接用 `biopaperminer tui`（Rich 自动处理） |
 
 ---
 

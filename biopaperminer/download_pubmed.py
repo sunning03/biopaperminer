@@ -40,7 +40,14 @@ class Colors:
 
 
 def cprint(msg, color=""):
-    print(f"{color}{msg}{Colors.ENDC}")
+    """安全打印（兼容 Windows GBK 终端，自动降级 emoji）"""
+    text = f"{color}{msg}{Colors.ENDC}"
+    try:
+        print(text)
+    except UnicodeEncodeError:
+        # Windows GBK 终端无法显示 emoji，替换为 ASCII 等效
+        safe = text.encode("utf-8", errors="ignore").decode("gbk", errors="replace")
+        print(safe)
 
 
 # ======================== PubMed 下载器 ========================
