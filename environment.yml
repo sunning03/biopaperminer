@@ -1,0 +1,30 @@
+# BioPaperMiner — Conda 虚拟环境配置
+#
+# 使用方法:
+#   conda env create -f environment.yml
+#   conda activate biopaperminer
+#   biopaperminer pipeline --pdf-dir ./pdfs/ --out ./results/
+#
+# 清理:  conda env remove -n biopaperminer
+
+name: biopaperminer
+
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  - python>=3.10,<3.13
+  - pip
+
+  - pip:
+      - PyMuPDF>=1.23.0
+      - pdfplumber>=0.10.0
+      - requests>=2.31.0
+      - aiohttp>=3.9.0
+      - certifi>=2024.0.0
+      - pandas>=2.0.0
+      - rich>=13.7.0
+      - tqdm>=4.66.0
+      - python-dateutil>=2.8.0
+      - openai>=1.30.0

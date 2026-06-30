@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.spec
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project artifacts
+*.tmp
+download_log.txt
+pubmed_results/
+results/
+pdfs/
+
+# Output (generated reports)
+output/
+*.bak
+
+# User config (contains API keys)
+user_config.json
+
+# pip install artifacts
+*.egg-info/
+biopaperminer.egg-info/
