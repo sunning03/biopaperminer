@@ -666,6 +666,8 @@ class BioPaperMinerApp:
             # 继承父进程环境变量，强制子进程无缓冲输出
             env = os.environ.copy()
             env["PYTHONUNBUFFERED"] = "1"
+            if sys.platform == "win32":
+                env["PYTHONIOENCODING"] = "utf-8"
             self._process = subprocess.Popen(
                 cmd,
                 stdout=subprocess.PIPE,
