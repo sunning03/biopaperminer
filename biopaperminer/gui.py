@@ -251,9 +251,10 @@ class ModulePanel:
 
     def _browse_files(self, var: tk.StringVar, ext: str = "*.pdf"):
         """多文件选择器（用 ; 分隔路径）"""
+        type_name = {"*.pdf": "PDF 文件", "*.csv;*.xlsx;*.xls": "CSV/Excel 文件"}.get(ext, "文件")
         files = filedialog.askopenfilenames(
-            title="选择 PDF 文件",
-            filetypes=[("PDF 文件", ext), ("所有文件", "*.*")],
+            title=f"选择 {type_name}",
+            filetypes=[(type_name, ext), ("所有文件", "*.*")],
             initialdir=ModulePanel._last_dir,
         )
         if files:
@@ -387,7 +388,7 @@ class BioPaperMinerApp:
             csvs = list(rd.glob("*.csv"))
             if csvs:
                 default_csv = str(csvs[0])
-        p.add_field(0, "输入文件 (CSV/Excel):", default_csv)
+        p.add_field(0, "输入文件 (CSV/Excel):", default_csv, file_ext="*.csv;*.xlsx;*.xls")
         p.add_field(1, "输出目录:", "./pdfs")
 
     def _init_pipeline_panel(self):
