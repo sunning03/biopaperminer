@@ -402,12 +402,76 @@ class BioPaperMinerApp:
 
     def _init_pipeline_panel(self):
         p = self.panels["pipeline"]
-        p.add_field(0, "PDF 目录:", "./pdfs")
-        p.add_field(1, "PDF 文件（可选）:", "", file_ext="*.pdf")
+        pf = p.param_frame
+
+        # Row 0: 输入模式选择
+        tk.Label(pf, text="输入模式:", font=FONT_LABEL,
+                 fg=COLORS["fg_text"], bg=COLORS["bg_primary"]).grid(
+            row=0, column=0, sticky=tk.W, pady=2)
+        p._mode_var = tk.StringVar(value="目录模式")
+        mode_cb = ttk.Combobox(pf, textvariable=p._mode_var,
+                               values=["目录模式", "文件模式"],
+                               state="readonly", width=43)
+        mode_cb.grid(row=0, column=1, sticky=tk.EW, pady=2, padx=(5, 0))
+        pf.columnconfigure(1, weight=1)
+
+        # Row 1: PDF 目录 / 文件（根据模式显隐）
+        p._dir_var = tk.StringVar(value="./pdfs")
+        p._file_var = tk.StringVar(value="")
+        p._dir_label = tk.Label(pf, text="PDF 目录:", font=FONT_LABEL,
+                                fg=COLORS["fg_text"], bg=COLORS["bg_primary"])
+        p._dir_label.grid(row=1, column=0, sticky=tk.W, pady=2)
+        p._dir_entry = tk.Entry(pf, textvariable=p._dir_var, font=FONT_ENTRY,
+                                fg=COLORS["fg_text"], bg=COLORS["bg_entry"],
+                                relief=tk.RAISED, bd=1, width=45)
+        p._dir_entry.grid(row=1, column=1, sticky=tk.EW, pady=2, padx=(5, 0))
+        p._dir_btn = tk.Button(pf, text="📂", font=("Helvetica", 11),
+                               fg=COLORS["fg_text"], bg=COLORS["bg_button"],
+                               relief=tk.RAISED, bd=1, cursor="hand2",
+                               command=lambda v=p._dir_var: p._browse(v), width=2)
+        p._dir_btn.grid(row=1, column=2, padx=(5, 0), pady=2)
+
+        p._file_label = tk.Label(pf, text="PDF 文件:", font=FONT_LABEL,
+                                 fg=COLORS["fg_text"], bg=COLORS["bg_primary"])
+        p._file_entry = tk.Entry(pf, textvariable=p._file_var, font=FONT_ENTRY,
+                                 fg=COLORS["fg_text"], bg=COLORS["bg_entry"],
+                                 relief=tk.RAISED, bd=1, width=45)
+        p._file_btn = tk.Button(pf, text="📄", font=("Helvetica", 11),
+                                fg=COLORS["fg_text"], bg=COLORS["bg_button"],
+                                relief=tk.RAISED, bd=1, cursor="hand2",
+                                command=lambda: self._browse_files(p._file_var, "*.pdf"),
+                                width=2)
+
+        # 初始隐藏文件行
+        for w in (p._file_label, p._file_entry, p._file_btn):
+            w.grid_remove()
+
+        # 模式切换事件
+        def on_mode_change(*_):
+            is_dir = p._mode_var.get() == "目录模式"
+            for w in (p._dir_label, p._dir_entry, p._dir_btn):
+                (w.grid if is_dir else w.grid_remove)()
+            for w in (p._file_label, p._file_entry, p._file_btn):
+                (w.grid if not is_dir else w.grid_remove)()
+            if is_dir:
+                p._dir_label.grid(row=1, column=0, sticky=tk.W, pady=2)
+                p._dir_entry.grid(row=1, column=1, sticky=tk.EW, pady=2, padx=(5, 0))
+                p._dir_btn.grid(row=1, column=2, padx=(5, 0), pady=2)
+            else:
+                p._file_label.grid(row=1, column=0, sticky=tk.W, pady=2)
+                p._file_entry.grid(row=1, column=1, sticky=tk.EW, pady=2, padx=(5, 0))
+                p._file_btn.grid(row=1, column=2, padx=(5, 0), pady=2)
+
+        p._mode_var.trace_add("write", on_mode_change)
+
+        p.param_vars = [p._dir_var, p._file_var]  # 供 _do_pipeline 读取
+
+        # Row 2: 输出目录
         p.add_field(2, "输出目录:", "./results")
 
+        # Row 3: 选项复选框（移到输出目录下方）
         cb = tk.Frame(p.param_frame, bg=COLORS["bg_primary"])
-        cb.grid(row=2, column=0, columnspan=3, sticky=tk.W, pady=6)
+        cb.grid(row=3, column=0, columnspan=3, sticky=tk.W, pady=6)
 
         p._skip_mineru = tk.BooleanVar(value=False)
         tk.Checkbutton(cb, text="跳过 MinerU 解析", variable=p._skip_mineru,
@@ -622,28 +686,28 @@ class BioPaperMinerApp:
         self._exec_cmd(cmd, p)
 
     def _do_pipeline(self, p: ModulePanel):
-        pdf_dir = p.param_vars[0].get() if len(p.param_vars) > 0 else "./pdfs"
-        pdf_files_raw = p.param_vars[1].get().strip() if len(p.param_vars) > 1 else ""
-        out_dir = p.param_vars[2].get() if len(p.param_vars) > 2 else "./results"
+        mode = getattr(p, "_mode_var", None)
+        is_dir_mode = mode and mode.get() == "目录模式"
+
+        out_idx = 2  # 输出目录始终是第 3 个字段（0-based）
+        out_dir = p.param_vars[out_idx].get() if len(p.param_vars) > out_idx else "./results"
 
         cmd = [sys.executable, "-m", "biopaperminer.pipeline", "pipeline",
                "--out", out_dir]
 
-        # 处理目录 + 文件两种模式
-        has_dir = bool(pdf_dir and pdf_dir != "./pdfs" or Path(pdf_dir).is_dir())
-        has_files = bool(pdf_files_raw)
-
-        if has_files:
-            # 多文件：用 ; 分隔
-            files = [f.strip() for f in pdf_files_raw.split(";") if f.strip()]
-            cmd += ["--pdf-files"] + files
-            p.log(f"PDF 文件: {len(files)} 个")
-        elif has_dir:
+        if is_dir_mode:
+            pdf_dir = p._dir_var.get() if hasattr(p, "_dir_var") else "./pdfs"
             cmd += ["--pdf-dir", pdf_dir]
             p.log(f"PDF 目录: {pdf_dir}")
         else:
-            p.log("⚠️  请填写 PDF 目录或选择 PDF 文件", "warning")
-            return
+            pdf_files_raw = p._file_var.get().strip() if hasattr(p, "_file_var") else ""
+            if pdf_files_raw:
+                files = [f.strip() for f in pdf_files_raw.split(";") if f.strip()]
+                cmd += ["--pdf-files"] + files
+                p.log(f"PDF 文件: {len(files)} 个")
+            else:
+                p.log("⚠️  请选择 PDF 文件", "warning")
+                return
 
         p.log(f"输出目录: {out_dir}")
 
