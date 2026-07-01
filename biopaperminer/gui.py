@@ -439,7 +439,7 @@ class BioPaperMinerApp:
         p._file_btn = tk.Button(pf, text="📄", font=("Helvetica", 11),
                                 fg=COLORS["fg_text"], bg=COLORS["bg_button"],
                                 relief=tk.RAISED, bd=1, cursor="hand2",
-                                command=lambda: self._browse_files(p._file_var, "*.pdf"),
+                                command=lambda v=p._file_var: p._browse_files(v, "*.pdf"),
                                 width=2)
 
         # 初始隐藏文件行
