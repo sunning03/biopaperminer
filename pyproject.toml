@@ -32,3 +32,6 @@ biopaperminer = "biopaperminer.main:main"
 
 [tool.setuptools.packages.find]
 include = ["biopaperminer*"]
+
+[tool.setuptools.package-data]
+biopaperminer = ["templates/*.html"]
