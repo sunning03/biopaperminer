@@ -251,10 +251,19 @@ class ModulePanel:
 
     def _browse_files(self, var: tk.StringVar, ext: str = "*.pdf"):
         """多文件选择器（用 ; 分隔路径）"""
-        type_name = {"*.pdf": "PDF 文件", "*.csv;*.xlsx;*.xls": "CSV/Excel 文件"}.get(ext, "文件")
+        # macOS 要求 filetypes 不能含分号，拆成多条
+        exts = ext.split(";")
+        type_name_map = {"*.pdf": "PDF 文件", "*.csv": "CSV 文件", "*.xlsx": "Excel 文件",
+                         "*.xls": "Excel 文件"}
+        filetypes = []
+        for e in exts:
+            name = type_name_map.get(e, "文件")
+            filetypes.append((name, e))
+        filetypes.append(("所有文件", "*.*"))
+
         files = filedialog.askopenfilenames(
-            title=f"选择 {type_name}",
-            filetypes=[(type_name, ext), ("所有文件", "*.*")],
+            title="选择文件",
+            filetypes=filetypes,
             initialdir=ModulePanel._last_dir,
         )
         if files:
