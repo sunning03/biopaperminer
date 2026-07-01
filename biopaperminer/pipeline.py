@@ -78,10 +78,40 @@ def set_file_state(state: dict, stem: str, key: str, value: str, score: int = 0)
 
 # ── Step 1: MinerU ────────────────────────────────────
 
-def step_mineru(pdf_dir: Path, output_dir: Path, token: str,
+def _collect_pdf_files(pdf_dir=None, pdf_files_list=None) -> list:
+    """收集 PDF 文件列表：支持目录、单文件、多文件"""
+    seen = set()
+    pdf_files = []
+
+    if pdf_dir:
+        pdf_path = Path(pdf_dir)
+        if pdf_path.is_dir():
+            for pattern in ("*.pdf", "**/*.pdf"):
+                for p in sorted(pdf_path.glob(pattern)):
+                    if p.resolve() not in seen:
+                        seen.add(p.resolve())
+                        pdf_files.append(p)
+        else:
+            print(f"  ⚠️  目录不存在: {pdf_dir}")
+
+    if pdf_files_list:
+        for f in pdf_files_list:
+            p = Path(f)
+            if p.is_file() and p.suffix.lower() == ".pdf":
+                if p.resolve() not in seen:
+                    seen.add(p.resolve())
+                    pdf_files.append(p)
+            else:
+                print(f"  ⚠️  跳过（非 PDF 或不存在）: {f}")
+
+    return pdf_files
+
+
+def step_mineru(pdf_files: list, output_dir: Path, token: str,
                 state: dict) -> list:
     """
     MinerU 解析：跳过已成功的，可选的只重试失败的。
+    pdf_files: 已收集好的 PDF 路径列表（来自 _collect_pdf_files）
     返回 [(md_path, pdf_stem), ...]
     """
     print(f"\n{'='*60}")
@@ -89,14 +119,6 @@ def step_mineru(pdf_dir: Path, output_dir: Path, token: str,
     print(f"{'='*60}")
 
     client = MinerUClient(api_token=token)
-    # 去重：同时匹配顶层和子目录的 PDF
-    seen = set()
-    pdf_files = []
-    for pattern in ("*.pdf", "**/*.pdf"):
-        for p in sorted(pdf_dir.glob(pattern)):
-            if p.resolve() not in seen:
-                seen.add(p.resolve())
-                pdf_files.append(p)
 
     if not pdf_files:
         print("  ⚠️  未找到 PDF 文件")
@@ -406,6 +428,8 @@ def main():
     # pipeline 子命令
     p_pipeline = subparsers.add_parser("pipeline", help="全流程：PDF → MinerU → LLM → 报告")
     p_pipeline.add_argument("--pdf-dir", type=str, help="PDF 文件目录")
+    p_pipeline.add_argument("--pdf-files", type=str, nargs="+", default=None,
+                            help="单个/多个 PDF 文件路径（与 --pdf-dir 二选一）")
     p_pipeline.add_argument("--md-dir", type=str, help="已有 Markdown 文件目录（跳过 MinerU）")
     p_pipeline.add_argument("--out", "-o", type=str, default="./output", help="输出目录")
     p_pipeline.add_argument("--skip-mineru", action="store_true", help="跳过 MinerU 解析")
@@ -472,16 +496,16 @@ def _run_pipeline(args):
 
     md_files = []
 
-    # Step 1: MinerU
-    if args.pdf_dir and not args.skip_mineru:
-        pdf_dir = Path(args.pdf_dir)
-        if not pdf_dir.is_dir():
-            print(f"❌ PDF 目录不存在: {pdf_dir}")
-            sys.exit(1)
+    # Step 1: MinerU（支持目录 / 单文件 / 多文件）
+    if not args.skip_mineru and (args.pdf_dir or args.pdf_files):
         if not token:
             print("❌ 需要 MinerU Token（--token / MINERU_API_TOKEN）")
             sys.exit(1)
-        md_files = step_mineru(pdf_dir, output_dir, token, state)
+        pdf_list = _collect_pdf_files(pdf_dir=args.pdf_dir, pdf_files_list=args.pdf_files)
+        if not pdf_list:
+            print("❌ 未找到任何 PDF 文件")
+            sys.exit(1)
+        md_files = step_mineru(pdf_list, output_dir, token, state)
 
     # 从 --md-dir 加载已有 MD
     if args.md_dir:

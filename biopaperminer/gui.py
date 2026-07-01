@@ -148,7 +148,7 @@ class ModulePanel:
 
     def add_field(self, row: int, label: str, default: str = "",
                   secret: bool = False, choices: list = None,
-                  show_when: str = "*") -> tk.StringVar:
+                  show_when: str = "*", file_ext: str = None) -> tk.StringVar:
         lbl = tk.Label(
             self.param_frame, text=label, font=FONT_LABEL,
             fg=COLORS["fg_text"], bg=COLORS["bg_primary"],
@@ -174,12 +174,22 @@ class ModulePanel:
         widget.grid(row=row, column=1, sticky=tk.EW, pady=2, padx=(5, 0))
 
         btn = None
-        if "目录" in label or "文件" in label:
+        if "目录" in label:
             btn = tk.Button(
                 self.param_frame, text="📂", font=("Helvetica", 11),
                 fg=COLORS["fg_text"], bg=COLORS["bg_button"],
                 relief=tk.RAISED, bd=1, cursor="hand2",
                 command=lambda v=var: self._browse(v),
+                width=2,
+            )
+            btn.grid(row=row, column=2, padx=(5, 0), pady=2)
+
+        elif file_ext:
+            btn = tk.Button(
+                self.param_frame, text="📄", font=("Helvetica", 11),
+                fg=COLORS["fg_text"], bg=COLORS["bg_button"],
+                relief=tk.RAISED, bd=1, cursor="hand2",
+                command=lambda v=var, ext=file_ext: self._browse_files(v, ext),
                 width=2,
             )
             btn.grid(row=row, column=2, padx=(5, 0), pady=2)
@@ -238,6 +248,18 @@ class ModulePanel:
         if d:
             var.set(d)
             ModulePanel._last_dir = d
+
+    def _browse_files(self, var: tk.StringVar, ext: str = "*.pdf"):
+        """多文件选择器（用 ; 分隔路径）"""
+        files = filedialog.askopenfilenames(
+            title="选择 PDF 文件",
+            filetypes=[("PDF 文件", ext), ("所有文件", "*.*")],
+            initialdir=ModulePanel._last_dir,
+        )
+        if files:
+            paths = ";".join(files)
+            var.set(paths)
+            ModulePanel._last_dir = str(Path(files[0]).parent)
 
 
 # ═══════════════════════════════════════════════════════
@@ -371,7 +393,8 @@ class BioPaperMinerApp:
     def _init_pipeline_panel(self):
         p = self.panels["pipeline"]
         p.add_field(0, "PDF 目录:", "./pdfs")
-        p.add_field(1, "输出目录:", "./results")
+        p.add_field(1, "PDF 文件（可选）:", "", file_ext="*.pdf")
+        p.add_field(2, "输出目录:", "./results")
 
         cb = tk.Frame(p.param_frame, bg=COLORS["bg_primary"])
         cb.grid(row=2, column=0, columnspan=3, sticky=tk.W, pady=6)
@@ -590,13 +613,29 @@ class BioPaperMinerApp:
 
     def _do_pipeline(self, p: ModulePanel):
         pdf_dir = p.param_vars[0].get() if len(p.param_vars) > 0 else "./pdfs"
-        out_dir = p.param_vars[1].get() if len(p.param_vars) > 1 else "./results"
-
-        p.log(f"PDF 目录: {pdf_dir}")
-        p.log(f"输出目录: {out_dir}")
+        pdf_files_raw = p.param_vars[1].get().strip() if len(p.param_vars) > 1 else ""
+        out_dir = p.param_vars[2].get() if len(p.param_vars) > 2 else "./results"
 
         cmd = [sys.executable, "-m", "biopaperminer.pipeline", "pipeline",
-               "--pdf-dir", pdf_dir, "--out", out_dir]
+               "--out", out_dir]
+
+        # 处理目录 + 文件两种模式
+        has_dir = bool(pdf_dir and pdf_dir != "./pdfs" or Path(pdf_dir).is_dir())
+        has_files = bool(pdf_files_raw)
+
+        if has_files:
+            # 多文件：用 ; 分隔
+            files = [f.strip() for f in pdf_files_raw.split(";") if f.strip()]
+            cmd += ["--pdf-files"] + files
+            p.log(f"PDF 文件: {len(files)} 个")
+        elif has_dir:
+            cmd += ["--pdf-dir", pdf_dir]
+            p.log(f"PDF 目录: {pdf_dir}")
+        else:
+            p.log("⚠️  请填写 PDF 目录或选择 PDF 文件", "warning")
+            return
+
+        p.log(f"输出目录: {out_dir}")
 
         if getattr(p, "_skip_mineru", None) and p._skip_mineru.get():
             cmd.append("--skip-mineru")
