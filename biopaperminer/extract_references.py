@@ -250,20 +250,24 @@ def extract_references(html_path: str) -> list[Reference]:
 # ===============================================================
 # 输出 CSV
 # ===============================================================
-def write_csv(references: list[Reference], output_path: str):
+def write_csv(references: list[Reference], output_dir: Path):
     """
-    将参考文献列表写入 CSV 文件（Tab 分隔）。
-    关注 DOI 和 title 列，其他列留空。
+    将参考文献列表写入输出目录。
+    生成:
+      - references.csv:  所有参考文献（Tab 分隔）
+      - missing_fields.log: 缺少 DOI 或标题的记录
+    """
+    csv_path = output_dir / "references.csv"
+    log_path = output_dir / "missing_fields.log"
 
-    列: pmid, title, abstract, authors, journal, pub_date, doi,
-        keywords, mesh_terms, pub_types
-    """
     headers = [
         "pmid", "title", "abstract", "authors", "journal",
         "pub_date", "doi", "keywords", "mesh_terms", "pub_types"
     ]
 
-    with open(output_path, "w", newline="", encoding="utf-8-sig") as f:
+    missing_log = []
+
+    with open(csv_path, "w", newline="", encoding="utf-8-sig") as f:
         writer = csv.DictWriter(f, fieldnames=headers, delimiter="\t")
         writer.writeheader()
 
@@ -286,6 +290,30 @@ def write_csv(references: list[Reference], output_path: str):
                 "pub_types": ""
             })
 
+            # 记录缺失字段
+            missing_reasons = []
+            if not doi_value:
+                missing_reasons.append("无 DOI")
+            if not ref.title:
+                missing_reasons.append("无标题")
+            if missing_reasons:
+                missing_log.append(f"[{ref.number}] {'、'.join(missing_reasons)}")
+                if doi_value:
+                    missing_log[-1] += f"  DOI: {doi_value}"
+                if ref.title:
+                    missing_log[-1] += f"  Title: {ref.title[:100]}"
+                if ref.pmid:
+                    missing_log[-1] += f"  PMID: {ref.pmid}"
+
+        # 写入日志文件
+        if missing_log:
+            log_path.write_text(
+                "# 以下参考文献缺少 DOI 或标题\n"
+                "# 可在浏览器打开 https://doi.org/DOI 手动查找\n\n"
+                + "\n".join(missing_log),
+                encoding="utf-8"
+            )
+
 
 # ===============================================================
 # 命令行入口
@@ -297,10 +325,13 @@ def main():
     parser.add_argument("html_file", help="输入的 HTML 文件路径")
     parser.add_argument(
         "-o", "--output",
-        help="输出 CSV 文件路径（默认 references.csv）",
-        default="references.csv"
+        help="输出目录（默认 ./references_output）",
+        default="./references_output"
     )
     args = parser.parse_args()
+
+    output_dir = Path(args.output)
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     references = extract_references(args.html_file)
 
@@ -308,14 +339,19 @@ def main():
         print("未找到参考文献。", file=sys.stderr)
         sys.exit(1)
 
-    write_csv(references, args.output)
+    write_csv(references, output_dir)
 
-    print(f"CSV 文件已生成: {args.output}")
-    print(f"共 {len(references)} 条参考文献")
+    csv_path = output_dir / "references.csv"
+    log_path = output_dir / "missing_fields.log"
+    print(f"📁 输出目录: {output_dir}/")
+    print(f"   📄 references.csv       ({len(references)} 条)")
+    if log_path.exists():
+        missing_count = len(log_path.read_text(encoding="utf-8").strip().split("\n")) - 2
+        print(f"   📋 missing_fields.log   ({missing_count} 条缺失记录)")
     print()
 
-    # 同时在屏幕上预览
-    for ref in references:
+    # 同时在屏幕上预览前 10 条
+    for ref in references[:10]:
         doi_display = ref.doi if ref.doi else "(无 DOI)"
         pmid_display = f"PMID:{ref.pmid}" if ref.pmid else ""
         title_display = ref.title if ref.title else "(无标题)"
@@ -323,6 +359,8 @@ def main():
         print(f"    DOI:   {doi_display}")
         print(f"    Title: {title_display}")
         print()
+    if len(references) > 10:
+        print(f"... 共 {len(references)} 条，完整列表见 {csv_path}")
 
 
 if __name__ == "__main__":

@@ -223,7 +223,7 @@ def extract_refs():
     if not html_file or not Path(html_file).is_file():
         console.print("[red]❌ 文件不存在[/red]")
         return
-    output = Prompt.ask("📂 输出 CSV 路径", default="references.csv")
+    output = Prompt.ask("📂 输出目录", default="./references_output")
 
     console.print(f"\n[cyan]▶ 提取参考文献: {html_file} → {output}[/cyan]")
 

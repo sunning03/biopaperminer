@@ -459,8 +459,8 @@ def main():
     # refs 子命令
     p_refs = subparsers.add_parser("refs", help="从 PMC HTML 提取参考文献")
     p_refs.add_argument("html_file", help="PMC HTML 文件路径")
-    p_refs.add_argument("-o", "--output", type=str, default="references.csv",
-                        help="输出 CSV 路径（默认 references.csv）")
+    p_refs.add_argument("-o", "--output", type=str, default="./references_output",
+                        help="输出目录（默认 ./references_output）")
     
     args = parser.parse_args()
     
@@ -627,9 +627,7 @@ def _run_download(args):
 def _run_refs(args):
     """执行参考文献提取"""
     from biopaperminer.extract_references import main as refs_main
-    sys.argv = ["extract_references", args.html_file]
-    if args.output:
-        sys.argv += ["-o", args.output]
+    sys.argv = ["extract_references", args.html_file, "-o", args.output]
     refs_main()
 
 

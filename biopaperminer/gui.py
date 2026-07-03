@@ -318,10 +318,10 @@ class BioPaperMinerApp:
         self.nav_items = []
         nav_callbacks = [
             ("🔍 PubMed 检索", "search", self._activate_search),
+            ("📄 提取参考文献", "refs", self._activate_refs),
             ("📥 PDF 下载", "download", self._activate_download),
             ("🔄 全流程 Pipeline", "pipeline", self._activate_pipeline),
             ("📊 查看报告", "report", self._activate_report),
-            ("📄 提取参考文献", "refs", self._activate_refs),
             ("⚙️  配置", "config", self._activate_config),
         ]
         for text, key, callback in nav_callbacks:
@@ -498,7 +498,7 @@ class BioPaperMinerApp:
     def _init_refs_panel(self):
         p = self.panels["refs"]
         p.add_field(0, "PMC HTML 文件:", "", file_ext="*.html;*.htm")
-        p.add_field(1, "输出 CSV 路径:", "references.csv")
+        p.add_field(1, "输出目录:", "./references_output")
 
     def _init_config_panel(self):
         from biopaperminer.config_editor import EDITABLE_FIELDS, get
@@ -751,7 +751,7 @@ class BioPaperMinerApp:
 
     def _do_refs(self, p: ModulePanel):
         html_file = p.param_vars[0].get().strip() if len(p.param_vars) > 0 else ""
-        output = p.param_vars[1].get().strip() if len(p.param_vars) > 1 else "references.csv"
+        output = p.param_vars[1].get().strip() if len(p.param_vars) > 1 else "./references_output"
 
         if not html_file:
             p.log("❌ 请选择 PMC HTML 文件", "error")
@@ -761,7 +761,7 @@ class BioPaperMinerApp:
             return
 
         p.log(f"HTML 文件: {html_file}")
-        p.log(f"输出 CSV: {output}")
+        p.log(f"输出目录: {output}")
 
         cmd = [sys.executable, "-m", "biopaperminer.pipeline", "refs", html_file, "-o", output]
         self._exec_cmd(cmd, p)
