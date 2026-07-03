@@ -497,8 +497,49 @@ class BioPaperMinerApp:
 
     def _init_refs_panel(self):
         p = self.panels["refs"]
-        p.add_field(0, "PMC HTML 文件:", "", file_ext="*.html;*.htm")
-        p.add_field(1, "输出目录:", "./references_output")
+        pf = p.param_frame
+        # Row 0: 格式选择
+        tk.Label(pf, text="输入格式:", font=FONT_LABEL,
+                 fg=COLORS["fg_text"], bg=COLORS["bg_primary"]).grid(
+            row=0, column=0, sticky=tk.W, pady=2)
+        p._refs_fmt = tk.StringVar(value="PMC HTML")
+        ttk.Combobox(pf, textvariable=p._refs_fmt,
+                     values=["PMC HTML", "RIS"],
+                     state="readonly", width=43).grid(
+            row=0, column=1, sticky=tk.EW, pady=2, padx=(5, 0))
+        pf.columnconfigure(1, weight=1)
+
+        # Row 1: 输入文件
+        p._refs_file_var = tk.StringVar(value="")
+        p._refs_file_label = tk.Label(pf, text="输入文件:", font=FONT_LABEL,
+                                      fg=COLORS["fg_text"], bg=COLORS["bg_primary"])
+        p._refs_file_label.grid(row=1, column=0, sticky=tk.W, pady=2)
+        p._refs_file_entry = tk.Entry(pf, textvariable=p._refs_file_var, font=FONT_ENTRY,
+                                      fg=COLORS["fg_text"], bg=COLORS["bg_entry"],
+                                      relief=tk.RAISED, bd=1, width=45)
+        p._refs_file_entry.grid(row=1, column=1, sticky=tk.EW, pady=2, padx=(5, 0))
+
+        def browse_refs_file():
+            fmt = p._refs_fmt.get()
+            ext = "*.html;*.htm" if fmt == "PMC HTML" else "*.ris"
+            type_name = "HTML 文件" if fmt == "PMC HTML" else "RIS 文件"
+            files = filedialog.askopenfilenames(
+                title=f"选择 {type_name}",
+                filetypes=[(type_name, ext), ("所有文件", "*.*")],
+                initialdir=ModulePanel._last_dir,
+            )
+            if files:
+                p._refs_file_var.set(";".join(files))
+                ModulePanel._last_dir = str(Path(files[0]).parent)
+
+        tk.Button(pf, text="📄", font=("Helvetica", 11),
+                  fg=COLORS["fg_text"], bg=COLORS["bg_button"],
+                  relief=tk.RAISED, bd=1, cursor="hand2",
+                  command=browse_refs_file, width=2).grid(
+            row=1, column=2, padx=(5, 0), pady=2)
+
+        # Row 2: 输出目录
+        p.add_field(2, "输出目录:", "./references_output")
 
     def _init_config_panel(self):
         from biopaperminer.config_editor import EDITABLE_FIELDS, get
@@ -750,20 +791,21 @@ class BioPaperMinerApp:
             p.log(f"报告不存在: {hp}", "error")
 
     def _do_refs(self, p: ModulePanel):
-        html_file = p.param_vars[0].get().strip() if len(p.param_vars) > 0 else ""
-        output = p.param_vars[1].get().strip() if len(p.param_vars) > 1 else "./references_output"
+        fmt = getattr(p, "_refs_fmt", None)
+        fmt_str = fmt.get() if fmt else "PMC HTML"
+        input_file = p._refs_file_var.get().strip() if hasattr(p, "_refs_file_var") else ""
+        output = p.param_vars[0].get().strip() if len(p.param_vars) > 0 else "./references_output"
 
-        if not html_file:
-            p.log("❌ 请选择 PMC HTML 文件", "error")
-            return
-        if not Path(html_file).is_file():
-            p.log(f"❌ 文件不存在: {html_file}", "error")
+        if not input_file:
+            p.log("❌ 请选择输入文件", "error")
             return
 
-        p.log(f"HTML 文件: {html_file}")
+        cmd = [sys.executable, "-m", "biopaperminer.pipeline", "refs", input_file, "-o", output]
+        if fmt_str == "RIS":
+            cmd += ["--format", "ris"]
+        p.log(f"格式: {fmt_str}")
+        p.log(f"输入文件: {input_file}")
         p.log(f"输出目录: {output}")
-
-        cmd = [sys.executable, "-m", "biopaperminer.pipeline", "refs", html_file, "-o", output]
         self._exec_cmd(cmd, p)
 
     def _do_config(self, p: ModulePanel):

@@ -457,8 +457,11 @@ def main():
     p_download.add_argument("--output", "-o", type=str, default="./pdf_download_results", help="输出目录")
     
     # refs 子命令
-    p_refs = subparsers.add_parser("refs", help="从 PMC HTML 提取参考文献")
-    p_refs.add_argument("html_file", help="PMC HTML 文件路径")
+    p_refs = subparsers.add_parser("refs", help="从 PMC HTML 或 RIS 提取参考文献")
+    p_refs.add_argument("input_file", help="输入文件路径（.html 或 .ris）")
+    p_refs.add_argument("-f", "--format", type=str, default="auto",
+                        choices=["auto", "html", "ris"],
+                        help="输入格式（auto: 根据扩展名识别）")
     p_refs.add_argument("-o", "--output", type=str, default="./references_output",
                         help="输出目录（默认 ./references_output）")
     
@@ -626,8 +629,10 @@ def _run_download(args):
 
 def _run_refs(args):
     """执行参考文献提取"""
-    from biopaperminer.extract_references import main as refs_main
-    sys.argv = ["extract_references", args.html_file, "-o", args.output]
+    from biopaperminer.extract_refs import main as refs_main
+    sys.argv = ["extract_refs", args.input_file, "-o", args.output]
+    if args.format and args.format != "auto":
+        sys.argv += ["--format", args.format]
     refs_main()
 
 

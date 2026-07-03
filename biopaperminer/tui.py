@@ -218,19 +218,23 @@ def view_reports():
 
 
 def extract_refs():
-    """从 PMC HTML 提取参考文献"""
-    html_file = Prompt.ask("📄 请输入 PMC HTML 文件路径", default="")
-    if not html_file or not Path(html_file).is_file():
+    """从 PMC HTML 或 RIS 文件提取参考文献"""
+    fmt = Prompt.ask("📄 输入格式", choices=["PMC HTML", "RIS"], default="PMC HTML")
+    ext = "*.html" if fmt == "PMC HTML" else "*.ris"
+    input_file = Prompt.ask(f"📄 请输入 {ext} 文件路径", default="")
+    if not input_file or not Path(input_file).is_file():
         console.print("[red]❌ 文件不存在[/red]")
         return
     output = Prompt.ask("📂 输出目录", default="./references_output")
 
-    console.print(f"\n[cyan]▶ 提取参考文献: {html_file} → {output}[/cyan]")
+    console.print(f"\n[cyan]▶ 提取参考文献 ({fmt}): {input_file} → {output}[/cyan]")
 
     cmd = [
         sys.executable, "-m", "biopaperminer.pipeline", "refs",
-        html_file, "-o", output,
+        input_file, "-o", output,
     ]
+    if fmt == "RIS":
+        cmd += ["--format", "ris"]
     result = subprocess.run(cmd, cwd=str(Path(__file__).parent.parent))
     if result.returncode == 0:
         console.print(f"[green]✅ 参考文献已提取到: {output}[/green]")

@@ -121,7 +121,7 @@ def cmd_gui():
 
 def cmd_refs():
     """提取参考文献"""
-    from biopaperminer.extract_references import main
+    from biopaperminer.extract_refs import main
     sys.argv = [sys.argv[0]] + sys.argv[2:]
     main()
 
