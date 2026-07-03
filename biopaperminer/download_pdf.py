@@ -931,10 +931,14 @@ class HighSuccessRateDownloader:
                 json.dump(self.failed_dois, f, ensure_ascii=False, indent=2)
             txt_path = self.failed_dir / "failed_dois.txt"
             with open(txt_path, 'w', encoding='utf-8') as f:
+                f.write("# 以下DOI下载失败，可复制URL到浏览器手动下载\n")
+                f.write("# 格式: DOI | https://doi.org/DOI\n\n")
                 for item in self.failed_dois:
-                    f.write(f"{item['doi']}\n")
+                    doi = item['doi']
+                    f.write(f"{doi} | https://doi.org/{doi}\n")
             logger.info(f"\n失败记录已保存: {self.failed_dir}")
             logger.info(f"失败DOI数量: {len(self.failed_dois)}")
+            logger.info(f"可在浏览器打开 https://doi.org/DOI 手动下载")
 
 
 # ==================== CSV / Excel 文件读取 ====================
