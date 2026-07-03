@@ -398,7 +398,7 @@ class BioPaperMinerApp:
             if csvs:
                 default_csv = str(csvs[0])
         p.add_field(0, "输入文件 (CSV/Excel):", default_csv, file_ext="*.csv;*.xlsx;*.xls")
-        p.add_field(1, "输出目录:", "./pdfs")
+        p.add_field(1, "输出目录:", "./pdf_download_results")
 
     def _init_pipeline_panel(self):
         p = self.panels["pipeline"]
@@ -467,7 +467,7 @@ class BioPaperMinerApp:
         p.param_vars = [p._dir_var, p._file_var]  # 供 _do_pipeline 读取
 
         # Row 2: 输出目录
-        p.add_field(2, "输出目录:", "./results")
+        p.add_field(2, "输出目录:", "./pdf_analysis_results")
 
         # Row 3: 选项复选框（移到输出目录下方）
         cb = tk.Frame(p.param_frame, bg=COLORS["bg_primary"])
@@ -490,7 +490,7 @@ class BioPaperMinerApp:
 
     def _init_report_panel(self):
         p = self.panels["report"]
-        p.add_field(0, "结果目录:", "./results")
+        p.add_field(0, "结果目录:", "./pdf_analysis_results")
 
     def _init_config_panel(self):
         from biopaperminer.config_editor import EDITABLE_FIELDS, get
@@ -651,7 +651,7 @@ class BioPaperMinerApp:
 
     def _do_download(self, p: ModulePanel):
         inp = p.param_vars[0].get() if len(p.param_vars) > 0 else "./papers.csv"
-        out = p.param_vars[1].get() if len(p.param_vars) > 1 else "./pdfs"
+        out = p.param_vars[1].get() if len(p.param_vars) > 1 else "./pdf_download_results"
 
         ip = Path(inp)
         if not ip.exists():
@@ -690,7 +690,7 @@ class BioPaperMinerApp:
         is_dir_mode = mode and mode.get() == "目录模式"
 
         out_idx = 2  # 输出目录始终是第 3 个字段（0-based）
-        out_dir = p.param_vars[out_idx].get() if len(p.param_vars) > out_idx else "./results"
+        out_dir = p.param_vars[out_idx].get() if len(p.param_vars) > out_idx else "./pdf_analysis_results"
 
         cmd = [sys.executable, "-m", "biopaperminer.pipeline", "pipeline",
                "--out", out_dir]
@@ -721,7 +721,7 @@ class BioPaperMinerApp:
         self._exec_cmd(cmd, p)
 
     def _do_report(self, p: ModulePanel):
-        rd = p.param_vars[0].get() if len(p.param_vars) > 0 else "./results"
+        rd = p.param_vars[0].get() if len(p.param_vars) > 0 else "./pdf_analysis_results"
         p.log(f"结果目录: {rd}")
         hp = Path(rd) / "interactive_report.html"
         if hp.exists():

@@ -77,7 +77,7 @@ class DownloadTask:
 class HighSuccessRateDownloader:
     """高成功率学术论文下载器"""
 
-    def __init__(self, output_dir: str = "downloaded_papers", unpaywall_email: str = None,
+    def __init__(self, output_dir: str = "./pdf_download_results", unpaywall_email: str = None,
                  max_concurrent: int = 8, timeout: int = 60, proxy: str = None):
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
@@ -1112,7 +1112,7 @@ def main():
     )
     parser.add_argument(
         "-o", "--output-dir",
-        default="downloaded_papers",
+        default="./pdf_download_results",
         help="PDF文件保存目录"
     )
     parser.add_argument(

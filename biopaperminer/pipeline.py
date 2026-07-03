@@ -431,7 +431,7 @@ def main():
     p_pipeline.add_argument("--pdf-files", type=str, nargs="+", default=None,
                             help="单个/多个 PDF 文件路径（与 --pdf-dir 二选一）")
     p_pipeline.add_argument("--md-dir", type=str, help="已有 Markdown 文件目录（跳过 MinerU）")
-    p_pipeline.add_argument("--out", "-o", type=str, default="./output", help="输出目录")
+    p_pipeline.add_argument("--out", "-o", type=str, default="./pdf_analysis_results", help="输出目录")
     p_pipeline.add_argument("--skip-mineru", action="store_true", help="跳过 MinerU 解析")
     p_pipeline.add_argument("--skip-llm", action="store_true", help="跳过 LLM 分析（只跑 MinerU）")
     p_pipeline.add_argument("--retry-failed", action="store_true", help="只重试之前失败的文件")
@@ -454,7 +454,7 @@ def main():
     # download 子命令
     p_download = subparsers.add_parser("download", help="PDF 批量下载")
     p_download.add_argument("input_file", help="输入 CSV/JSON 文件")
-    p_download.add_argument("--output", "-o", type=str, default="./pdfs", help="输出目录")
+    p_download.add_argument("--output", "-o", type=str, default="./pdf_download_results", help="输出目录")
     
     args = parser.parse_args()
     

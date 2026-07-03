@@ -89,7 +89,7 @@ def run_pipeline(pdf_dir: Optional[str] = None, out_dir: Optional[str] = None):
     if pdf_dir is None:
         pdf_dir = Prompt.ask("📂 请输入 PDF 目录路径", default="./pdfs")
     if out_dir is None:
-        out_dir = Prompt.ask("📂 请输入输出目录路径", default="./results")
+        out_dir = Prompt.ask("📂 请输入输出目录路径", default="./pdf_analysis_results")
 
     pdf_path = Path(pdf_dir)
     if not pdf_path.is_dir():
@@ -155,7 +155,7 @@ def search_pubmed():
 def download_pdfs():
     """PDF 下载"""
     input_file = Prompt.ask("📂 输入文件路径 (CSV/Excel)", default="./papers.csv")
-    output_dir = Prompt.ask("📂 输出目录", default="./pdfs")
+    output_dir = Prompt.ask("📂 输出目录", default="./pdf_download_results")
 
     console.print(f"\n[cyan]▶ 下载 PDF: {input_file} → {output_dir}[/cyan]")
 
@@ -173,7 +173,7 @@ def download_pdfs():
 
 def view_reports():
     """查看报告"""
-    results_dir = Prompt.ask("📂 结果目录", default="./results")
+    results_dir = Prompt.ask("📂 结果目录", default="./pdf_analysis_results")
     results_path = Path(results_dir)
 
     if not results_path.exists():
