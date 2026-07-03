@@ -1,10 +1,12 @@
 # -*- mode: python ; coding: utf-8 -*-
 """BioPaperMiner PyInstaller 打包配置"""
 import sys
+import os
 from pathlib import Path
 
 block_cipher = None
-root = Path(__file__).parent
+# PyInstaller spec 中不能用 __file__，用当前工作目录
+root = Path(os.getcwd())
 
 a = Analysis(
     ['main.py'],
