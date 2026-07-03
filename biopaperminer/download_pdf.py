@@ -977,7 +977,9 @@ def read_dois_from_csv(csv_path: str, doi_column: str = None, encoding: str = No
 
     for enc in encodings_to_try:
         try:
-            df = pd.read_csv(csv_path, encoding=enc, quotechar='"', skipinitialspace=True)
+            df = pd.read_csv(csv_path, encoding=enc, sep=None,
+                             quotechar='"', skipinitialspace=True,
+                             engine='python')
             logger.info(f"CSV 文件使用编码 '{enc}' 成功读取")
             break
         except (UnicodeDecodeError, Exception) as e:
