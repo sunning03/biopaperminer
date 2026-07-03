@@ -1,4 +1,0 @@
-# 以下DOI下载失败，可复制URL到浏览器手动下载
-# 格式: DOI | https://doi.org/DOI
-
-10.1002/pro.4792 | https://doi.org/10.1002/pro.4792

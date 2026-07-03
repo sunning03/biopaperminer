@@ -32,6 +32,10 @@ pdfs/
 output/
 *.bak
 
+# Download results
+pdf_download_results/
+references_output/
+
 # User config (contains API keys)
 user_config.json
 
@@ -41,3 +45,4 @@ biopaperminer.egg-info/
 
 # Reasonix internal (AI assistant working directory)
 .reasonix/
+.github/
