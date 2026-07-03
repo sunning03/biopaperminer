@@ -852,21 +852,9 @@ class BioPaperMinerApp:
     def _exec_cmd(self, cmd: list, panel: ModulePanel):
         # 打包环境下：将 python -m biopaperminer.pipeline 替换为 exe 自身
         if getattr(sys, 'frozen', False):
-            exe_path = sys.executable
-            new_cmd = [exe_path]
-            # 跳过原始命令中的 python.exe 和 -m biopaperminer.pipeline
-            i = 0
-            while i < len(cmd):
-                part = cmd[i]
-                if part.endswith(('python.exe', 'python3', 'python')):
-                    i += 1
-                    continue
-                if part == '-m':
-                    i += 2
-                    continue
-                new_cmd.append(part)
-                i += 1
-            cmd = new_cmd
+            # 原始 cmd: [python.exe, -m, biopaperminer.pipeline, search, ...]
+            # 跳过前 3 个（python, -m, module），直接跟后面的参数
+            cmd = [sys.executable] + cmd[3:]
 
         panel.log(f"执行: {' '.join(cmd)}")
         try:
