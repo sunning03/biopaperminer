@@ -9,7 +9,7 @@ block_cipher = None
 root = Path(os.getcwd())
 
 a = Analysis(
-    ['main.py'],
+    ['gui_entry.py'],
     pathex=[str(root)],
     binaries=[],
     datas=[
@@ -45,7 +45,7 @@ exe = EXE(
     upx=False,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=True,
+    console=False,       # 隐藏终端窗口，只显示 GUI
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
