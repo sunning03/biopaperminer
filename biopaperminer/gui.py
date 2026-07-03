@@ -521,11 +521,16 @@ class BioPaperMinerApp:
 
         def browse_refs_file():
             fmt = p._refs_fmt.get()
-            ext = "*.html;*.htm" if fmt == "PMC HTML" else "*.ris"
-            type_name = "HTML 文件" if fmt == "PMC HTML" else "RIS 文件"
+            if fmt == "PMC HTML":
+                exts = ["*.html", "*.htm"]
+                label = "HTML 文件"
+            else:
+                exts = ["*.ris"]
+                label = "RIS 文件"
+            filetypes = [(label, e) for e in exts] + [("所有文件", "*.*")]
             files = filedialog.askopenfilenames(
-                title=f"选择 {type_name}",
-                filetypes=[(type_name, ext), ("所有文件", "*.*")],
+                title=f"选择 {label}",
+                filetypes=filetypes,
                 initialdir=ModulePanel._last_dir,
             )
             if files:
@@ -845,10 +850,26 @@ class BioPaperMinerApp:
     # ── 命令执行 ──
 
     def _exec_cmd(self, cmd: list, panel: ModulePanel):
-        panel.log(f"执行命令: {' '.join(cmd)}")
+        # 打包环境下：将 python -m biopaperminer.pipeline 替换为 exe 自身
+        if getattr(sys, 'frozen', False):
+            exe_path = sys.executable
+            new_cmd = [exe_path]
+            # 跳过原始命令中的 python.exe 和 -m biopaperminer.pipeline
+            i = 0
+            while i < len(cmd):
+                part = cmd[i]
+                if part.endswith(('python.exe', 'python3', 'python')):
+                    i += 1
+                    continue
+                if part == '-m':
+                    i += 2
+                    continue
+                new_cmd.append(part)
+                i += 1
+            cmd = new_cmd
+
+        panel.log(f"执行: {' '.join(cmd)}")
         try:
-            # 使用 Popen 直接读取行，避免缓冲导致日志延迟
-            # 继承父进程环境变量，强制子进程无缓冲输出
             env = os.environ.copy()
             env["PYTHONUNBUFFERED"] = "1"
             if sys.platform == "win32":
