@@ -321,6 +321,7 @@ class BioPaperMinerApp:
             ("📥 PDF 下载", "download", self._activate_download),
             ("🔄 全流程 Pipeline", "pipeline", self._activate_pipeline),
             ("📊 查看报告", "report", self._activate_report),
+            ("📄 提取参考文献", "refs", self._activate_refs),
             ("⚙️  配置", "config", self._activate_config),
         ]
         for text, key, callback in nav_callbacks:
@@ -342,13 +343,14 @@ class BioPaperMinerApp:
         self.content = tk.Frame(main, bg=COLORS["bg_primary"])
         self.content.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
 
-        # 创建 5 个模块面板
+        # 创建 6 个模块面板
         self.panels = {
             "search":   ModulePanel(self.content, self.root, "PubMed 检索"),
             "download": ModulePanel(self.content, self.root, "PDF 下载"),
             "pipeline": ModulePanel(self.content, self.root, "全流程 Pipeline"),
             "report":   ModulePanel(self.content, self.root, "查看报告"),
             "config":   ModulePanel(self.content, self.root, "配置"),
+            "refs":     ModulePanel(self.content, self.root, "提取参考文献"),
         }
 
         # 初始化各面板参数
@@ -357,6 +359,7 @@ class BioPaperMinerApp:
         self._init_pipeline_panel()
         self._init_report_panel()
         self._init_config_panel()
+        self._init_refs_panel()
 
         # 全局运行/停止按钮
         btn_bar = tk.Frame(self.content, bg=COLORS["bg_primary"])
@@ -492,6 +495,11 @@ class BioPaperMinerApp:
         p = self.panels["report"]
         p.add_field(0, "结果目录:", "./pdf_analysis_results")
 
+    def _init_refs_panel(self):
+        p = self.panels["refs"]
+        p.add_field(0, "PMC HTML 文件:", "", file_ext="*.html;*.htm")
+        p.add_field(1, "输出 CSV 路径:", "references.csv")
+
     def _init_config_panel(self):
         from biopaperminer.config_editor import EDITABLE_FIELDS, get
         p = self.panels["config"]
@@ -563,6 +571,10 @@ class BioPaperMinerApp:
         self._show_panel("report")
         self.panels["report"].log("切换到: 查看报告")
 
+    def _activate_refs(self):
+        self._show_panel("refs")
+        self.panels["refs"].log("切换到: 提取参考文献")
+
     def _activate_config(self):
         self._show_panel("config")
         self.panels["config"].log("切换到: 配置")
@@ -593,6 +605,7 @@ class BioPaperMinerApp:
             "pipeline": self._do_pipeline,
             "report":   self._do_report,
             "config":   self._do_config,
+            "refs":     self._do_refs,
         }
         executor = exec_map.get(key)
         if not executor:
@@ -735,6 +748,23 @@ class BioPaperMinerApp:
             p.log("报告已在浏览器中打开", "success")
         else:
             p.log(f"报告不存在: {hp}", "error")
+
+    def _do_refs(self, p: ModulePanel):
+        html_file = p.param_vars[0].get().strip() if len(p.param_vars) > 0 else ""
+        output = p.param_vars[1].get().strip() if len(p.param_vars) > 1 else "references.csv"
+
+        if not html_file:
+            p.log("❌ 请选择 PMC HTML 文件", "error")
+            return
+        if not Path(html_file).is_file():
+            p.log(f"❌ 文件不存在: {html_file}", "error")
+            return
+
+        p.log(f"HTML 文件: {html_file}")
+        p.log(f"输出 CSV: {output}")
+
+        cmd = [sys.executable, "-m", "biopaperminer.pipeline", "refs", html_file, "-o", output]
+        self._exec_cmd(cmd, p)
 
     def _do_config(self, p: ModulePanel):
         from biopaperminer.config_editor import EDITABLE_FIELDS, save

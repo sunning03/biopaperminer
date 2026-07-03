@@ -63,6 +63,7 @@ def show_main_menu():
     menu.add_row("3", "🔄 全流程 Pipeline", "PDF → MinerU → LLM → 报告")
     menu.add_row("4", "📊 查看报告", "打开生成的分析报告")
     menu.add_row("5", "⚙️  配置", "查看/修改配置")
+    menu.add_row("6", "📄 提取参考文献", "从 PMC HTML 提取参考文献")
     menu.add_row("0", "🚪 退出", "")
 
     console.print(Panel(menu, border_style="cyan", title="主菜单", title_align="left"))
@@ -216,6 +217,27 @@ def view_reports():
                 subprocess.run(["xdg-open", str(html_file)])
 
 
+def extract_refs():
+    """从 PMC HTML 提取参考文献"""
+    html_file = Prompt.ask("📄 请输入 PMC HTML 文件路径", default="")
+    if not html_file or not Path(html_file).is_file():
+        console.print("[red]❌ 文件不存在[/red]")
+        return
+    output = Prompt.ask("📂 输出 CSV 路径", default="references.csv")
+
+    console.print(f"\n[cyan]▶ 提取参考文献: {html_file} → {output}[/cyan]")
+
+    cmd = [
+        sys.executable, "-m", "biopaperminer.pipeline", "refs",
+        html_file, "-o", output,
+    ]
+    result = subprocess.run(cmd, cwd=str(Path(__file__).parent.parent))
+    if result.returncode == 0:
+        console.print(f"[green]✅ 参考文献已提取到: {output}[/green]")
+    else:
+        console.print(f"[yellow]⚠️  提取未完成，返回码: {result.returncode}[/yellow]")
+
+
 def show_config():
     """交互式配置编辑（动态显隐 + 密码打码 + 连通测试）"""
     from biopaperminer.config_editor import EDITABLE_FIELDS, load, save
@@ -327,6 +349,8 @@ def main():
             view_reports()
         elif choice == "5":
             show_config()
+        elif choice == "6":
+            extract_refs()
 
         console.print("\n[dim]按 Enter 继续...[/dim]")
         input()

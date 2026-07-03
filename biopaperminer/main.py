@@ -119,6 +119,13 @@ def cmd_gui():
     main()
 
 
+def cmd_refs():
+    """提取参考文献"""
+    from biopaperminer.extract_references import main
+    sys.argv = [sys.argv[0]] + sys.argv[2:]
+    main()
+
+
 def show_help():
     print("BioPaperMiner — 生物文献挖掘系统")
     print()
@@ -131,6 +138,7 @@ def show_help():
     print("  download    PDF 批量下载")
     print("  tui         交互式终端界面（图形化操作）")
     print("  gui         图形界面（需要 tkinter 或 PyQt6）")
+    print("  refs        从 PMC HTML 提取参考文献")
     print()
     print("示例:")
     print("  biopaperminer pipeline --pdf-dir ./pdfs/ --out ./results/")
@@ -163,13 +171,14 @@ def main():
         "download": cmd_download,
         "tui": cmd_tui,
         "gui": cmd_gui,
+        "refs": cmd_refs,
     }
 
     if cmd in dispatch:
         dispatch[cmd]()
     else:
         print(f"未知命令: {cmd}")
-        print("可用命令: pipeline, search, download, tui, gui")
+        print("可用命令: pipeline, search, download, refs, tui, gui")
 
 
 if __name__ == "__main__":

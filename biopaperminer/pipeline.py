@@ -456,6 +456,12 @@ def main():
     p_download.add_argument("input_file", help="输入 CSV/JSON 文件")
     p_download.add_argument("--output", "-o", type=str, default="./pdf_download_results", help="输出目录")
     
+    # refs 子命令
+    p_refs = subparsers.add_parser("refs", help="从 PMC HTML 提取参考文献")
+    p_refs.add_argument("html_file", help="PMC HTML 文件路径")
+    p_refs.add_argument("-o", "--output", type=str, default="references.csv",
+                        help="输出 CSV 路径（默认 references.csv）")
+    
     args = parser.parse_args()
     
     # 如果没有子命令，显示帮助
@@ -469,6 +475,8 @@ def main():
         _run_search(args)
     elif args.command == "download":
         _run_download(args)
+    elif args.command == "refs":
+        _run_refs(args)
 
 
 def _run_pipeline(args):
@@ -614,6 +622,15 @@ def _run_download(args):
     if args.output:
         sys.argv += ["-o", args.output]
     download_main()
+
+
+def _run_refs(args):
+    """执行参考文献提取"""
+    from biopaperminer.extract_references import main as refs_main
+    sys.argv = ["extract_references", args.html_file]
+    if args.output:
+        sys.argv += ["-o", args.output]
+    refs_main()
 
 
 if __name__ == "__main__":
