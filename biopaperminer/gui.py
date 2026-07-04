@@ -673,17 +673,6 @@ class BioPaperMinerApp:
             self.panels[self._current_panel].log("没有正在运行的任务", "warning")
         self._reset_buttons()
 
-    def _run_task(self, executor, panel: ModulePanel):
-        """在线程中执行具体任务"""
-        try:
-            executor(panel)
-        except Exception as e:
-            panel.log(f"执行出错: {e}", "error")
-        finally:
-            self._process = None
-            self._running = False
-            self.root.after(0, self._reset_buttons)
-
     def _reset_buttons(self):
         self.run_btn.config(state=tk.NORMAL)
         self.stop_btn.config(state=tk.DISABLED)
@@ -847,59 +836,56 @@ class BioPaperMinerApp:
         except Exception as e:
             p.log(f"⚠️  连接测试异常: {e}", "warning")
 
-    # ── 命令执行 ──
+    # ── 命令执行（子进程，捕获输出到 GUI 日志） ──
 
     def _exec_cmd(self, cmd: list, panel: ModulePanel):
-        # 打包环境下：将 python -m biopaperminer.pipeline 替换为 exe 自身
+        # 打包环境下：替换为 exe 自身
         if getattr(sys, 'frozen', False):
-            # 原始 cmd: [python.exe, -m, biopaperminer.pipeline, search, ...]
-            # 跳过前 3 个（python, -m, module），直接跟后面的参数
             cmd = [sys.executable] + cmd[3:]
 
         panel.log(f"执行: {' '.join(cmd)}")
         try:
             env = os.environ.copy()
-            env["PYTHONUNBUFFERED"] = "1"
             if sys.platform == "win32":
                 env["PYTHONIOENCODING"] = "utf-8"
             self._process = subprocess.Popen(
-                cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                bufsize=1,
-                text=False,
-                cwd=str(Path(__file__).parent.parent),
-                env=env,
+                cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                bufsize=0, text=False,  # 无缓冲二进制模式
+                cwd=str(Path(__file__).parent.parent), env=env,
             )
-            while True:
-                line = self._process.stdout.readline()
-                if not line:
-                    if self._process.poll() is not None:
-                        break
-                    continue
-                try:
-                    decoded = line.decode("utf-8", errors="replace").rstrip()
-                except Exception:
-                    decoded = str(line).rstrip()
+            for line in iter(self._process.stdout.readline, b''):
+                decoded = line.decode("utf-8", errors="replace").rstrip()
                 if not decoded:
                     continue
+                level = "info"
                 if "✅" in decoded or "success" in decoded.lower():
-                    panel.log(decoded, "success")
+                    level = "success"
                 elif "❌" in decoded or "error" in decoded.lower() or "failed" in decoded.lower():
-                    panel.log(decoded, "error")
+                    level = "error"
                 elif "⚠" in decoded or "warn" in decoded.lower():
-                    panel.log(decoded, "warning")
-                else:
-                    panel.log(decoded)
+                    level = "warning"
+                panel.log(decoded, level)
             self._process.wait()
-            if self._process.returncode == 0:
-                panel.log("执行完成", "success")
-            else:
-                panel.log(f"执行结束，返回码: {self._process.returncode}", "warning")
+            rc = self._process.returncode
+            panel.log("执行完成" if rc == 0 else f"执行结束，返回码: {rc}",
+                      "success" if rc == 0 else "warning")
         except Exception as e:
             panel.log(f"执行失败: {e}", "error")
         finally:
             self._process = None
+
+    def _run_task(self, executor, panel: ModulePanel):
+        """在线程中运行"""
+        try:
+            executor(panel)
+        except Exception as e:
+            panel.log(f"❌ 出错: {e}", "error")
+            import traceback
+            panel.log(traceback.format_exc(), "error")
+        finally:
+            self._process = None
+            self._running = False
+            self.root.after(0, self._reset_buttons)
 
 
 def main():
