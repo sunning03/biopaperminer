@@ -17,6 +17,89 @@ from pathlib import Path
 from typing import Optional
 
 
+# ── 期刊缩写加载 ──
+
+_JOURNAL_ABBR_CACHE = None
+
+def _load_journal_abbr():
+    """加载 journal_abbr_list.txt，返回 {小写标准化名: 缩写} 的字典"""
+    global _JOURNAL_ABBR_CACHE
+    if _JOURNAL_ABBR_CACHE is not None:
+        return _JOURNAL_ABBR_CACHE
+
+    abbr_path = Path(__file__).parent / "journal_abbr_list.txt"
+    _JOURNAL_ABBR_CACHE = {}
+
+    if not abbr_path.exists():
+        return _JOURNAL_ABBR_CACHE
+
+    for line in abbr_path.read_text(encoding="utf-8", errors="ignore").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        parts = line.split("\t")
+        if len(parts) >= 3:
+            full = parts[0].strip()
+            abbr = parts[2].strip()
+            if full and abbr:
+                # 存多个 key 提高匹配率
+                key = _normalize(full)
+                _JOURNAL_ABBR_CACHE[key] = abbr
+                # 也存缩写本身（方便精确匹配）
+                key_abbr = _normalize(abbr)
+                _JOURNAL_ABBR_CACHE[key_abbr] = abbr
+
+    return _JOURNAL_ABBR_CACHE
+
+
+def _normalize(text: str) -> str:
+    """标准化：小写、去标点、合并空格"""
+    text = re.sub(r'[&,/.:;()\[\]!?\'\"-]', ' ', text)
+    text = re.sub(r'\s+', ' ', text.strip().lower())
+    return text
+
+
+def lookup_journal_abbr(journal_name: str) -> str:
+    """查找期刊缩写，找不到返回原名称"""
+    if not journal_name:
+        return journal_name
+
+    abbr_dict = _load_journal_abbr()
+    if not abbr_dict:
+        return journal_name
+
+    # 如果已经是缩写格式（全大写+点或全大写无空格），直接返回
+    if re.match(r'^[A-Z][A-Za-z0-9.&\s]+$', journal_name.strip()) and len(journal_name) < 30:
+        return journal_name
+
+    query = _normalize(journal_name)
+
+    # 精确匹配
+    if query in abbr_dict:
+        return abbr_dict[query]
+
+    # 模糊匹配：查询词是某个 key 的子串或反向
+    matches = []
+    for key, abbr in abbr_dict.items():
+        # 查询包含 key 或 key 包含查询
+        if query in key or key in query:
+            matches.append((len(key), abbr))
+        # 分词匹配（大部分词重叠）
+        else:
+            q_words = set(query.split())
+            k_words = set(key.split())
+            common = q_words & k_words
+            if len(common) >= min(len(q_words), len(k_words)) * 0.6 and len(common) >= 2:
+                matches.append((len(key), abbr))
+
+    if matches:
+        # 选最长的匹配（最精确）
+        matches.sort(key=lambda x: -x[0])
+        return matches[0][1]
+
+    return journal_name
+
+
 def sanitize(text: str, max_len: int = 40) -> str:
     """清理文本：去特殊字符，空格→下划线，限长"""
     text = re.sub(r'[&/:?*"<>|]', '', text)
@@ -30,7 +113,8 @@ def build_filename(first_author: str, year: str, source: str,
     """按规范格式构建文件名"""
     fa = sanitize(first_author.split()[-1] if first_author else "Unknown", 20)
     yr = year[:4] if year and year[:4].isdigit() else "0000"
-    src = sanitize(source, 20) if source else "Unknown"
+    # 使用期刊缩写
+    src = sanitize(lookup_journal_abbr(source), 20) if source else "Unknown"
 
     en_part = "-".join(sanitize(k, 20) for k in en_kw[:2] if k)
     cn_part = "-".join(sanitize(k, 10) for k in cn_kw[:2] if k)
@@ -53,13 +137,10 @@ def extract_metadata_from_text(text: str) -> dict:
     lines = text.split('\n')
     for i, line in enumerate(lines[:50]):
         line = line.strip()
-        # 提取年份（常见模式：2023, 2023 Jan, (2023)）
         if not year:
             m = re.search(r'\b((?:19|20)\d{2})\b', line)
             if m:
                 year = m.group(1)
-
-        # 提取第一作者（行中第一个含大写字母的单词后跟 et al. 或逗号+大写）
         if not first_author and i < 5:
             m = re.search(r'^([A-Z][a-zéèêëàâùûüôöîïç]+)', line)
             if m:
@@ -87,7 +168,7 @@ def get_llm_metadata(pdf_path: Path, text: str) -> dict:
 {{
   "first_author": "第一作者姓氏",
   "year": "发表年份(4位数字)",
-  "source": "期刊/会议缩写（如 Nature、Science、PNAS、CVPR、ACL）",
+  "source": "期刊/会议全称（如 Nature、Science、PNAS、Proceedings of the National Academy of Sciences）",
   "title_keywords_en": ["英文关键词1", "英文关键词2"],
   "title_keywords_cn": ["中文关键词1", "中文关键词2"]
 }}
@@ -113,7 +194,6 @@ def get_llm_metadata(pdf_path: Path, text: str) -> dict:
 def get_metadata(pdf_path: Path, text: str,
                  analysis_cache: dict = None) -> dict:
     """获取元数据：优先分析缓存 → LLM → 启发式"""
-    # 1. 检查分析缓存
     if analysis_cache:
         import hashlib
         h = hashlib.md5(pdf_path.read_bytes()).hexdigest()[:12]
@@ -129,12 +209,10 @@ def get_metadata(pdf_path: Path, text: str,
                 "title_keywords_cn": cn_kw[:2],
             }
 
-    # 2. LLM 提取
     meta = get_llm_metadata(pdf_path, text)
     if meta.get("year") or meta.get("first_author"):
         return meta
 
-    # 3. 启发式兜底
     return extract_metadata_from_text(text)
 
 
@@ -143,13 +221,11 @@ def rename_pdf(pdf_path: Path, output_dir: Path = None,
     """重命名单个 PDF，返回新路径"""
     from biopaperminer.pdf_extractor import PDFExtractor
 
-    # 提取文本
     text, _, _ = PDFExtractor.extract(pdf_path)
     if not text or len(text) < 50:
         print(f"  ⚠️  无法提取文本: {pdf_path.name}")
         return None
 
-    # 获取元数据
     meta = get_metadata(pdf_path, text, analysis_cache)
     new_name = build_filename(
         meta.get("first_author", ""),
@@ -165,7 +241,6 @@ def rename_pdf(pdf_path: Path, output_dir: Path = None,
         print(f"  🔄 {pdf_path.name} → {new_name}")
         return target
 
-    # 避免覆盖
     counter = 1
     orig = target
     while target.exists():
@@ -189,7 +264,6 @@ def main():
     parser.add_argument("--analysis-json", help="analysis_results.json 路径（可选）")
     args = parser.parse_args()
 
-    # 收集 PDF
     pdf_files = []
     for inp in args.input:
         p = Path(inp)
@@ -202,9 +276,7 @@ def main():
         print("❌ 未找到 PDF 文件")
         sys.exit(1)
 
-    # 加载缓存
     analysis_cache = load_analysis_cache(args.analysis_json)
-
     output_dir = Path(args.output) if args.output else None
 
     print(f"📄 共 {len(pdf_files)} 个 PDF 文件\n" if not args.dry_run else

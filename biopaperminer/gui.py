@@ -319,9 +319,9 @@ class BioPaperMinerApp:
         nav_callbacks = [
             ("🔍 PubMed 检索", "search", self._activate_search),
             ("📄 提取参考文献", "refs", self._activate_refs),
-            ("🏷️ PDF 重命名", "rename", self._activate_rename),
             ("📥 PDF 下载", "download", self._activate_download),
             ("🔄 全流程 Pipeline", "pipeline", self._activate_pipeline),
+            ("🏷️ PDF 重命名", "rename", self._activate_rename),
             ("📊 查看报告", "report", self._activate_report),
             ("⚙️  配置", "config", self._activate_config),
         ]
