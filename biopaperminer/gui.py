@@ -563,6 +563,10 @@ class BioPaperMinerApp:
         tk.Checkbutton(cb, text="使用已有分析结果加速", variable=p._use_analysis,
                        bg=COLORS["bg_primary"], fg=COLORS["fg_text"],
                        selectcolor=COLORS["bg_button"]).pack(side=tk.LEFT, padx=(10,0))
+        p._copy_files = tk.BooleanVar(value=False)
+        tk.Checkbutton(cb, text="复制文件（而不是移动）", variable=p._copy_files,
+                       bg=COLORS["bg_primary"], fg=COLORS["fg_text"],
+                       selectcolor=COLORS["bg_button"]).pack(side=tk.LEFT, padx=(10,0))
 
     def _init_config_panel(self):
         from biopaperminer.config_editor import EDITABLE_FIELDS, get
@@ -830,15 +834,20 @@ class BioPaperMinerApp:
         out_dir = p.param_vars[1].get() if len(p.param_vars) > 1 else "./renamed_pdfs"
         dry_run = getattr(p, "_dry_run", None) and p._dry_run.get()
         use_analysis = getattr(p, "_use_analysis", None) and p._use_analysis.get()
+        copy_files = getattr(p, "_copy_files", None) and p._copy_files.get()
 
         p.log(f"PDF 目录: {pdf_dir}")
         p.log(f"输出目录: {out_dir}")
         p.log("🔍 仅预览（不重命名）" if dry_run else "✏️  即将重命名")
+        if copy_files:
+            p.log("📋 复制模式（保留原文件）")
 
         cmd = [sys.executable, "-m", "biopaperminer.pipeline", "rename", pdf_dir,
                "-o", out_dir]
         if dry_run:
             cmd.append("--dry-run")
+        if copy_files:
+            cmd.append("--copy")
         if use_analysis:
             # 自动查找最近的 analysis_results.json
             for candidate in [Path(pdf_dir).parent / "pdf_analysis_results",

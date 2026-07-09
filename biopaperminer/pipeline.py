@@ -472,6 +472,8 @@ def main():
     p_rename.add_argument("--dry-run", action="store_true", help="仅预览，不重命名")
     p_rename.add_argument("--analysis-json", type=str,
                           help="analysis_results.json 路径（可选，加速提取）")
+    p_rename.add_argument("--copy", action="store_true",
+                          help="复制文件而不是移动")
     
     args = parser.parse_args()
     
@@ -656,6 +658,8 @@ def _run_rename(args):
         sys.argv += ["--dry-run"]
     if args.analysis_json:
         sys.argv += ["--analysis-json", args.analysis_json]
+    if args.copy:
+        sys.argv += ["--copy"]
     rename_main()
 
 

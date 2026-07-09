@@ -217,8 +217,10 @@ def get_metadata(pdf_path: Path, text: str,
 
 
 def rename_pdf(pdf_path: Path, output_dir: Path = None,
-               dry_run: bool = False, analysis_cache: dict = None) -> Optional[Path]:
+               dry_run: bool = False, analysis_cache: dict = None,
+               copy_mode: bool = False) -> Optional[Path]:
     """重命名单个 PDF，返回新路径"""
+    import shutil
     from biopaperminer.pdf_extractor import PDFExtractor
 
     text, _, _ = PDFExtractor.extract(pdf_path)
@@ -248,8 +250,12 @@ def rename_pdf(pdf_path: Path, output_dir: Path = None,
         target = orig.with_stem(stem)
         counter += 1
 
-    pdf_path.rename(target)
-    print(f"  ✅ {pdf_path.name} → {target.name}")
+    if copy_mode:
+        shutil.copy2(pdf_path, target)
+        print(f"  ✅ {pdf_path.name} → {target.name}（已复制）")
+    else:
+        pdf_path.rename(target)
+        print(f"  ✅ {pdf_path.name} → {target.name}（已移动）")
     return target
 
 
@@ -261,6 +267,7 @@ def main():
     parser.add_argument("input", nargs="+", help="PDF 文件或目录路径")
     parser.add_argument("-o", "--output", help="输出目录（默认同目录）")
     parser.add_argument("--dry-run", action="store_true", help="仅预览，不实际重命名")
+    parser.add_argument("--copy", action="store_true", help="复制文件而不是移动")
     parser.add_argument("--analysis-json", help="analysis_results.json 路径（可选）")
     args = parser.parse_args()
 
@@ -285,7 +292,8 @@ def main():
     renamed = 0
     for pdf in pdf_files:
         result = rename_pdf(pdf, output_dir, dry_run=args.dry_run,
-                            analysis_cache=analysis_cache)
+                            analysis_cache=analysis_cache,
+                            copy_mode=args.copy)
         if result:
             renamed += 1
 
