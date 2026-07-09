@@ -37,6 +37,8 @@ pdf_download_results/
 references_output/
 renamed_pdfs/
 test_rename/
+untitled folder/
+untitled_folder/
 
 # User config (contains API keys)
 user_config.json
