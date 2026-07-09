@@ -894,6 +894,7 @@ class BioPaperMinerApp:
         panel.log(f"执行: {' '.join(cmd)}")
         try:
             env = os.environ.copy()
+            env["PYTHONUNBUFFERED"] = "1"
             if sys.platform == "win32":
                 env["PYTHONIOENCODING"] = "utf-8"
             self._process = subprocess.Popen(
