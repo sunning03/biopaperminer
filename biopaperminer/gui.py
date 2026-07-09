@@ -553,6 +553,22 @@ class BioPaperMinerApp:
         p = self.panels["rename"]
         p.add_field(0, "PDF 目录:", "./pdfs")
         p.add_field(1, "输出目录:", "./renamed_pdfs")
+        p._analysis_json_var = tk.StringVar(value="./pdf_analysis_results/analysis_results.json")
+        p._analysis_json_entry = tk.Entry(p.param_frame, textvariable=p._analysis_json_var,
+                                          font=FONT_ENTRY, fg=COLORS["fg_text"],
+                                          bg=COLORS["bg_entry"],
+                                          relief=tk.RAISED, bd=1, width=45)
+        p._analysis_json_label = tk.Label(p.param_frame, text="分析结果 JSON:", font=FONT_LABEL,
+                                          fg=COLORS["fg_text"], bg=COLORS["bg_primary"])
+        p._analysis_json_btn = tk.Button(p.param_frame, text="📄", font=("Helvetica", 11),
+                                         fg=COLORS["fg_text"], bg=COLORS["bg_button"],
+                                         relief=tk.RAISED, bd=1, cursor="hand2",
+                                         command=lambda v=p._analysis_json_var: p._browse_files(v, "*.json"),
+                                         width=2)
+        # 默认隐藏 JSON 行
+        for w in (p._analysis_json_label, p._analysis_json_entry, p._analysis_json_btn):
+            w.grid_remove()
+
         cb = tk.Frame(p.param_frame, bg=COLORS["bg_primary"])
         cb.grid(row=2, column=0, columnspan=3, sticky=tk.W, pady=6)
         p._dry_run = tk.BooleanVar(value=False)
@@ -567,6 +583,17 @@ class BioPaperMinerApp:
         tk.Checkbutton(cb, text="复制文件（而不是移动）", variable=p._copy_files,
                        bg=COLORS["bg_primary"], fg=COLORS["fg_text"],
                        selectcolor=COLORS["bg_button"]).pack(side=tk.LEFT, padx=(10,0))
+
+        # 勾选"使用分析结果"时显隐 JSON 路径行
+        def toggle_json_field(*_):
+            show = p._use_analysis.get()
+            for w in (p._analysis_json_label, p._analysis_json_entry, p._analysis_json_btn):
+                (w.grid if show else w.grid_remove)()
+            if show:
+                p._analysis_json_label.grid(row=3, column=0, sticky=tk.W, pady=2)
+                p._analysis_json_entry.grid(row=3, column=1, sticky=tk.EW, pady=2, padx=(5, 0))
+                p._analysis_json_btn.grid(row=3, column=2, padx=(5, 0), pady=2)
+        p._use_analysis.trace_add("write", toggle_json_field)
 
     def _init_config_panel(self):
         from biopaperminer.config_editor import EDITABLE_FIELDS, get
@@ -848,6 +875,10 @@ class BioPaperMinerApp:
             cmd.append("--dry-run")
         if copy_files:
             cmd.append("--copy")
+        if use_analysis:
+            aj_path = p._analysis_json_var.get().strip() if hasattr(p, "_analysis_json_var") else ""
+            if aj_path and Path(aj_path).exists():
+                cmd += ["--analysis-json", aj_path]
         if use_analysis:
             # 自动查找最近的 analysis_results.json
             for candidate in [Path(pdf_dir).parent / "pdf_analysis_results",
