@@ -139,6 +139,7 @@ def show_help():
     print("  tui         交互式终端界面（图形化操作）")
     print("  gui         图形界面（需要 tkinter 或 PyQt6）")
     print("  refs        从 PMC HTML 提取参考文献")
+    print("  rename      智能重命名 PDF 文件")
     print()
     print("示例:")
     print("  biopaperminer pipeline --pdf-dir ./pdfs/ --out ./results/")
@@ -172,13 +173,14 @@ def main():
         "tui": cmd_tui,
         "gui": cmd_gui,
         "refs": cmd_refs,
+        "rename": cmd_refs,
     }
 
     if cmd in dispatch:
         dispatch[cmd]()
     else:
         print(f"未知命令: {cmd}")
-        print("可用命令: pipeline, search, download, refs, tui, gui")
+        print("可用命令: pipeline, search, download, refs, rename, tui, gui")
 
 
 if __name__ == "__main__":

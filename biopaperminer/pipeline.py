@@ -465,6 +465,14 @@ def main():
     p_refs.add_argument("-o", "--output", type=str, default="./references_output",
                         help="输出目录（默认 ./references_output）")
     
+    # rename 子命令
+    p_rename = subparsers.add_parser("rename", help="PDF 智能重命名")
+    p_rename.add_argument("input", nargs="+", help="PDF 文件或目录路径")
+    p_rename.add_argument("-o", "--output", type=str, help="输出目录")
+    p_rename.add_argument("--dry-run", action="store_true", help="仅预览，不重命名")
+    p_rename.add_argument("--analysis-json", type=str,
+                          help="analysis_results.json 路径（可选，加速提取）")
+    
     args = parser.parse_args()
     
     # 如果没有子命令，显示帮助
@@ -480,6 +488,8 @@ def main():
         _run_download(args)
     elif args.command == "refs":
         _run_refs(args)
+    elif args.command == "rename":
+        _run_rename(args)
 
 
 def _run_pipeline(args):
@@ -634,6 +644,19 @@ def _run_refs(args):
     if args.format and args.format != "auto":
         sys.argv += ["--format", args.format]
     refs_main()
+
+
+def _run_rename(args):
+    """执行 PDF 智能重命名"""
+    from biopaperminer.rename_pdfs import main as rename_main
+    sys.argv = ["rename_pdfs"] + args.input
+    if args.output:
+        sys.argv += ["-o", args.output]
+    if args.dry_run:
+        sys.argv += ["--dry-run"]
+    if args.analysis_json:
+        sys.argv += ["--analysis-json", args.analysis_json]
+    rename_main()
 
 
 if __name__ == "__main__":

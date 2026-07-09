@@ -319,6 +319,7 @@ class BioPaperMinerApp:
         nav_callbacks = [
             ("🔍 PubMed 检索", "search", self._activate_search),
             ("📄 提取参考文献", "refs", self._activate_refs),
+            ("🏷️ PDF 重命名", "rename", self._activate_rename),
             ("📥 PDF 下载", "download", self._activate_download),
             ("🔄 全流程 Pipeline", "pipeline", self._activate_pipeline),
             ("📊 查看报告", "report", self._activate_report),
@@ -351,6 +352,7 @@ class BioPaperMinerApp:
             "report":   ModulePanel(self.content, self.root, "查看报告"),
             "config":   ModulePanel(self.content, self.root, "配置"),
             "refs":     ModulePanel(self.content, self.root, "提取参考文献"),
+            "rename":   ModulePanel(self.content, self.root, "PDF 重命名"),
         }
 
         # 初始化各面板参数
@@ -360,6 +362,7 @@ class BioPaperMinerApp:
         self._init_report_panel()
         self._init_config_panel()
         self._init_refs_panel()
+        self._init_rename_panel()
 
         # 全局运行/停止按钮
         btn_bar = tk.Frame(self.content, bg=COLORS["bg_primary"])
@@ -546,6 +549,21 @@ class BioPaperMinerApp:
         # Row 2: 输出目录
         p.add_field(2, "输出目录:", "./references_output")
 
+    def _init_rename_panel(self):
+        p = self.panels["rename"]
+        p.add_field(0, "PDF 目录:", "./pdfs")
+        p.add_field(1, "输出目录:", "./renamed_pdfs")
+        cb = tk.Frame(p.param_frame, bg=COLORS["bg_primary"])
+        cb.grid(row=2, column=0, columnspan=3, sticky=tk.W, pady=6)
+        p._dry_run = tk.BooleanVar(value=False)
+        tk.Checkbutton(cb, text="仅预览，不重命名", variable=p._dry_run,
+                       bg=COLORS["bg_primary"], fg=COLORS["fg_text"],
+                       selectcolor=COLORS["bg_button"]).pack(side=tk.LEFT)
+        p._use_analysis = tk.BooleanVar(value=True)
+        tk.Checkbutton(cb, text="使用已有分析结果加速", variable=p._use_analysis,
+                       bg=COLORS["bg_primary"], fg=COLORS["fg_text"],
+                       selectcolor=COLORS["bg_button"]).pack(side=tk.LEFT, padx=(10,0))
+
     def _init_config_panel(self):
         from biopaperminer.config_editor import EDITABLE_FIELDS, get
         p = self.panels["config"]
@@ -621,6 +639,10 @@ class BioPaperMinerApp:
         self._show_panel("refs")
         self.panels["refs"].log("切换到: 提取参考文献")
 
+    def _activate_rename(self):
+        self._show_panel("rename")
+        self.panels["rename"].log("切换到: PDF 重命名")
+
     def _activate_config(self):
         self._show_panel("config")
         self.panels["config"].log("切换到: 配置")
@@ -652,6 +674,7 @@ class BioPaperMinerApp:
             "report":   self._do_report,
             "config":   self._do_config,
             "refs":     self._do_refs,
+            "rename":   self._do_rename,
         }
         executor = exec_map.get(key)
         if not executor:
@@ -800,6 +823,31 @@ class BioPaperMinerApp:
         p.log(f"格式: {fmt_str}")
         p.log(f"输入文件: {input_file}")
         p.log(f"输出目录: {output}")
+        self._exec_cmd(cmd, p)
+
+    def _do_rename(self, p: ModulePanel):
+        pdf_dir = p.param_vars[0].get() if len(p.param_vars) > 0 else "./pdfs"
+        out_dir = p.param_vars[1].get() if len(p.param_vars) > 1 else "./renamed_pdfs"
+        dry_run = getattr(p, "_dry_run", None) and p._dry_run.get()
+        use_analysis = getattr(p, "_use_analysis", None) and p._use_analysis.get()
+
+        p.log(f"PDF 目录: {pdf_dir}")
+        p.log(f"输出目录: {out_dir}")
+        p.log("🔍 仅预览（不重命名）" if dry_run else "✏️  即将重命名")
+
+        cmd = [sys.executable, "-m", "biopaperminer.pipeline", "rename", pdf_dir,
+               "-o", out_dir]
+        if dry_run:
+            cmd.append("--dry-run")
+        if use_analysis:
+            # 自动查找最近的 analysis_results.json
+            for candidate in [Path(pdf_dir).parent / "pdf_analysis_results",
+                              Path("./pdf_analysis_results"),
+                              Path(".")]:
+                aj = candidate / "analysis_results.json"
+                if aj.exists():
+                    cmd += ["--analysis-json", str(aj)]
+                    break
         self._exec_cmd(cmd, p)
 
     def _do_config(self, p: ModulePanel):
