@@ -173,6 +173,10 @@ def get_llm_metadata(pdf_path: Path, text: str) -> dict:
   "title_keywords_cn": ["中文关键词1", "中文关键词2"]
 }}
 
+要求：
+- title_keywords_en 和 title_keywords_cn 中**必须包含论文研究的物种/生物名称**（如 Arabidopsis thaliana、水稻、人类、小鼠、大肠杆菌等）
+- 关键词选 2-4 个最能体现论文核心内容的实词，物种名称排第一位
+
 只输出 JSON，不要其他文字。
 
 论文文本（前 3000 字符）：
