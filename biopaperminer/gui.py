@@ -943,7 +943,13 @@ class BioPaperMinerApp:
                 cwd=str(Path(__file__).parent.parent), env=env,
             )
             for line in iter(self._process.stdout.readline, b''):
-                decoded = line.decode("utf-8", errors="replace").rstrip()
+                try:
+                    decoded = line.decode("utf-8").rstrip()
+                except UnicodeDecodeError:
+                    if sys.platform == "win32":
+                        decoded = line.decode("gbk", errors="replace").rstrip()
+                    else:
+                        decoded = line.decode("utf-8", errors="replace").rstrip()
                 if not decoded:
                     continue
                 level = "info"
