@@ -343,7 +343,7 @@ def main():
 
     csv_path = output_dir / "references.csv"
     log_path = output_dir / "missing_fields.log"
-    print(f"📁 输出目录: {output_dir}/")
+    print(f"输出目录: {output_dir}/")
     print(f"   📄 references.csv       ({len(references)} 条)")
     if log_path.exists():
         missing_count = len(log_path.read_text(encoding="utf-8").strip().split("\n")) - 2
