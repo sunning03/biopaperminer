@@ -418,23 +418,17 @@ class BioPaperMinerApp:
             ("设置", "settings", self._activate_settings),
             ("配置", "config", self._activate_config),
         ]
+        self._nav_labels = {}
         for text, key, callback in nav_callbacks:
-            # 圆角容器
-            f = tk.Frame(nav, bg=COLORS["bg_button"], bd=1,
-                         relief=tk.RAISED, highlightbackground=COLORS["border"])
-            f.pack(pady=(6, 4), fill=tk.X, padx=3)
-            rb = tk.Radiobutton(f, text=text, font=FONT_BTN,
-                                fg=COLORS["fg_text"],
-                                bg=COLORS["bg_button"],
-                                activebackground=COLORS["bg_button_hover"],
-                                activeforeground="white",
-                                selectcolor=COLORS["bg_active"],
-                                relief=tk.FLAT, bd=0,
-                                cursor="hand2", width=22, anchor=tk.W,
-                                value=key,
-                                variable=self.nav_var,
-                                command=callback)
-            rb.pack(fill=tk.X, padx=6, pady=3)
+            lbl = tk.Label(nav, text=f"  {text}  ", font=FONT_BTN,
+                           fg="#000000", bg=COLORS["bg_button"],
+                           padx=8, pady=6, cursor="hand2",
+                           anchor=tk.W, relief=tk.RAISED, bd=1)
+            lbl.pack(pady=(4, 3), fill=tk.X, padx=2)
+            lbl.bind("<Button-1>", lambda e, k=key: self._on_nav_click(k))
+            lbl.bind("<Enter>", lambda e, l=lbl: l.config(bg=COLORS["bg_button_hover"]))
+            lbl.bind("<Leave>", lambda e, l=lbl: l.config(bg=COLORS["bg_button"]))
+            self._nav_labels[key] = lbl
             self.nav_items.append(rb)
 
         # ── 右侧内容区 ──
@@ -482,7 +476,7 @@ class BioPaperMinerApp:
         self.stop_btn.pack(side=tk.LEFT, padx=(8, 0))
 
         # 默认激活搜索
-        self._activate_search()
+        self._on_nav_click("search")
 
     # ── 面板初始化 ──
 
@@ -767,6 +761,23 @@ class BioPaperMinerApp:
 
         # Radiobutton 通过 nav_var 自动管理选中态
         self.nav_var.set(key)
+
+    def _on_nav_click(self, key):
+        """导航点击处理：高亮选中项 + 打开对应面板"""
+        for k, lbl in self._nav_labels.items():
+            bg = COLORS["bg_active"] if k == key else COLORS["bg_button"]
+            lbl.config(bg=bg)
+        self.nav_var.set(key)
+        {
+            "search": self._activate_search,
+            "refs": self._activate_refs,
+            "download": self._activate_download,
+            "pipeline": self._activate_pipeline,
+            "rename": self._activate_rename,
+            "report": self._activate_report,
+            "settings": self._activate_settings,
+            "config": self._activate_config,
+        }[key]()
 
     def _activate_search(self):
         self._show_panel("search")
