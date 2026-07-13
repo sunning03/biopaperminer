@@ -148,16 +148,20 @@ def step_mineru(pdf_files: list, output_dir: Path, token: str,
             skipped += 1
             continue
 
-        print(f"\n  [{i+1}/{total}] {stem}")
+        print(f"\n  [{i+1}/{total}] 📄 {stem}")
+        print(f"     路径: {pdf_path}")
 
         # ── 执行 MinerU ──
+        print(f"     正在调用 MinerU API 解析...")
         md_text = client.pdf_to_md(pdf_path, output_dir=md_out)
 
         if md_text:
             set_file_state(state, stem, "mineru", "done")
-            print(f"    ✅ → {md_path} ({len(md_text)} 字符)")
+            print(f"    ✅ MinerU 解析成功 → {md_path.name}")
+            print(f"      文本长度: {len(md_text)} 字符")
             results.append((md_path, stem))
         else:
+            print(f"    ⚠️  MinerU API 失败，尝试 PyMuPDF 回退...")
             # 尝试 PyMuPDF fallback
             try:
                 from biopaperminer.analyzer import PDFExtractor
@@ -200,13 +204,14 @@ def _analyze_single_file(md_path: Path, pdf_stem: str, idx: int, total: int,
         print(f"  [{idx}/{total}] {pdf_stem} — ✅ 已成功，跳过")
         return None
 
-    print(f"  [{idx}/{total}] {pdf_stem} — 分析中...")
+    print(f"\n  [{idx}/{total}] 🧠 {pdf_stem}")
 
     # 读取 Markdown 文本
+    print(f"     正在读取 Markdown 文本...")
     try:
         md_text = md_path.read_text(encoding="utf-8")
     except Exception as e:
-        print(f"    ❌ [{pdf_stem}] 读取 MD 失败: {e}")
+        print(f"    ❌ 读取 MD 失败: {e}")
         with state_lock:
             set_file_state(state, pdf_stem, "llm", "failed")
             _periodic_save(output_dir, state, state_lock)
@@ -219,12 +224,15 @@ def _analyze_single_file(md_path: Path, pdf_stem: str, idx: int, total: int,
     from biopaperminer.llm_client import get_llm_client
     client = get_llm_client()
 
+    print(f"     文本长度: {len(md_text)} 字符")
     for attempt in range(MAX_RETRIES):
+        print(f"     正在调用 LLM 分析...（尝试 {attempt+1}/{MAX_RETRIES}）")
         try:
             prompt = build_analysis_prompt(md_text)
             response_text = client.chat(prompt)
 
             if response_text:
+                print(f"     正在解析 LLM 返回的 JSON...")
                 parsed = _safe_parse_json(response_text)
                 if parsed:
                     pa = _dict_to_paper(parsed, md_path, pdf_stem, md_text)
@@ -233,10 +241,15 @@ def _analyze_single_file(md_path: Path, pdf_stem: str, idx: int, total: int,
                             set_file_state(state, pdf_stem, "llm", "done",
                                           pa.importance_score)
                             _periodic_save(output_dir, state, state_lock)
-                        print(f"    ✅ [{pdf_stem}] 分析成功 — 评分: {pa.importance_score}")
+                        print(f"    ✅ 分析成功 — 标题: {pa.title[:60]}")
+                        print(f"       重要性评分: {pa.importance_score}/10")
                         return pa
+                    else:
+                        print(f"    ⚠️  数据转换失败")
+                else:
+                    print(f"    ⚠️  JSON 解析失败，重试 {attempt + 1}/{MAX_RETRIES}")
             else:
-                print(f"    ⚠️  [{pdf_stem}] 返回空结果，重试 {attempt + 1}/{MAX_RETRIES}")
+                print(f"    ⚠️  LLM 返回空结果，重试 {attempt + 1}/{MAX_RETRIES}")
         except Exception as e:
             print(f"    ⚠️  [{pdf_stem}] 请求错误: {e}，重试 {attempt + 1}/{MAX_RETRIES}")
 
