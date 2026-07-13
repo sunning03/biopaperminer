@@ -39,26 +39,26 @@ except ImportError:
 # ═══════════════════════════════════════════════════════
 
 COLORS = {
-    "bg_primary":     "#e8f4f8",
-    "bg_header":      "#b8d8e8",
-    "bg_button":      "#7ec8e3",
-    "bg_button_hover": "#5bb5d8",
-    "bg_active":      "#4aa3df",
-    "bg_entry":       "#ffffff",
-    "bg_log":         "#f0f8fb",
-    "bg_panel":       "#dceaf2",
-    "fg_text":        "#1a3a4a",
-    "fg_heading":     "#0d4f6e",
-    "fg_accent":      "#2196f3",
-    "fg_success":     "#2e7d32",
-    "fg_error":       "#c62828",
-    "fg_warning":     "#f57f17",
-    "fg_dim":         "#7a9aaa",
-    "border":         "#8ec5d9",
-    "run_bg":         "#43a047",
-    "run_fg":         "#1a3a4a",
-    "stop_bg":        "#e53935",
-    "stop_fg":        "#1a3a4a",
+    "bg_primary":     "#F7F9F7",   # 页面背景 - 柔和米白
+    "bg_header":      "#2E7D32",   # 顶部标题栏 - 生命绿
+    "bg_button":      "#E8F0E8",   # 导航按钮 - 极浅绿
+    "bg_button_hover": "#C8E6C9",  # 导航悬停 - 浅绿
+    "bg_active":      "#81C784",   # 选中状态 - 辅助绿
+    "bg_entry":       "#FFFFFF",   # 输入框 - 纯白
+    "bg_log":         "#F7F9F7",   # 日志区 - 柔和米白
+    "bg_panel":       "#F0F4F0",   # 面板标题 - 极浅绿灰
+    "fg_text":        "#4B5563",   # 正文 - 柔和深灰
+    "fg_heading":     "#1F2937",   # 标题文字 - 深灰黑
+    "fg_accent":      "#1E88E5",   # 强调色 - 信息蓝
+    "fg_success":     "#2E7D32",   # 成功文字 - 森林绿
+    "fg_error":       "#E53935",   # 错误文字 - 红
+    "fg_warning":     "#FFB300",   # 警告文字 - 琥珀
+    "fg_dim":         "#6B7280",   # 辅助文字 - 中灰
+    "border":         "#E6E8E6",   # 边框 - 极淡灰
+    "run_bg":         "#2E7D32",   # 运行按钮 - 森林绿
+    "run_fg":         "#FFFFFF",   # 运行按钮文字 - 白
+    "stop_bg":        "#E53935",   # 停止按钮 - 红
+    "stop_fg":        "#FFFFFF",   # 停止按钮文字 - 白
 }
 
 # ── DPI 感知字体缩放（用户可额外调节） ──
@@ -390,10 +390,10 @@ class BioPaperMinerApp:
         # 顶部标题
         hdr = tk.Frame(self.root, bg=COLORS["bg_header"], padx=20, pady=10)
         hdr.pack(fill=tk.X)
-        tk.Label(hdr, text="📚 BioPaperMiner", font=FONT_TITLE,
-                 fg=COLORS["fg_heading"], bg=COLORS["bg_header"]).pack(side=tk.LEFT)
+        tk.Label(hdr, text="BioPaperMiner", font=FONT_TITLE,
+                 fg="#FFFFFF", bg=COLORS["bg_header"]).pack(side=tk.LEFT)
         tk.Label(hdr, text="PubMed 检索 → PDF 下载 → MinerU 解析 → LLM 分析 → 报告生成",
-                 font=("Helvetica", 11), fg=COLORS["fg_dim"],
+                 font=("Helvetica", 11), fg="#FFFFFF",
                  bg=COLORS["bg_header"]).pack(side=tk.LEFT, padx=(10, 0))
 
         # 主内容
@@ -402,7 +402,7 @@ class BioPaperMinerApp:
 
         # ── 左侧导航 ──
         nav = tk.LabelFrame(main, text="  功能导航  ", font=FONT_HEADING,
-                            fg=COLORS["fg_heading"], bg=COLORS["bg_panel"],
+                            fg=COLORS["fg_heading"], bg=COLORS["bg_primary"],
                             bd=1, relief=tk.RAISED, padx=10, pady=8)
         nav.pack(side=tk.LEFT, fill=tk.Y, padx=(0, 8))
 
