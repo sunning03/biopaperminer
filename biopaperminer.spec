@@ -2,11 +2,20 @@
 """BioPaperMiner PyInstaller 打包配置"""
 import sys
 import os
+import importlib
 from pathlib import Path
 
 block_cipher = None
 # PyInstaller spec 中不能用 __file__，用当前工作目录
 root = Path(os.getcwd())
+
+# 查找 tkinterdnd2 的 tkdnd 本地库路径
+_tkdnd_path = None
+try:
+    _tkdnd_mod = importlib.import_module('tkinterdnd2')
+    _tkdnd_path = Path(_tkdnd_mod.__file__).parent / 'tkdnd'
+except Exception:
+    pass
 
 a = Analysis(
     ['gui_entry.py'],
@@ -15,7 +24,7 @@ a = Analysis(
     datas=[
         (str(root / 'biopaperminer' / 'templates' / 'report.html'),
          'biopaperminer/templates'),
-    ],
+    ] + ([(str(_tkdnd_path), 'tkinterdnd2/tkdnd')] if _tkdnd_path and _tkdnd_path.exists() else []),
     hiddenimports=[
         'biopaperminer', 'biopaperminer.main', 'biopaperminer.config',
         'biopaperminer.config_editor', 'biopaperminer.models',
@@ -26,6 +35,7 @@ a = Analysis(
         'biopaperminer.download_pdf', 'biopaperminer.extract_references',
         'biopaperminer.extract_ris', 'biopaperminer.extract_refs',
         'biopaperminer.tui', 'biopaperminer.gui',
+        'tkinterdnd2', 'tkinterdnd2.TkinterDnD',
     ],
     excludes=['tkinter.test', 'unittest', 'pdb', 'pycparser', 'setuptools'],
     win_no_prefer_redirects=False,
