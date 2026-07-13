@@ -61,22 +61,33 @@ COLORS = {
     "stop_fg":        "#1a3a4a",
 }
 
-# ── DPI 感知字体缩放 ──
+# ── DPI 感知字体缩放（用户可额外调节） ──
 FONT_SCALE = 1.0
+
+def _load_font_scale():
+    """从配置加载用户字体缩放倍数"""
+    from biopaperminer.config_editor import get
+    try:
+        return float(get("FONT_SCALE", "1.0"))
+    except Exception:
+        return 1.0
 
 def _init_fonts(root):
     """根据 DPI 缩放字体"""
     global FONT_SCALE, FONT_TITLE, FONT_LABEL, FONT_ENTRY, FONT_LOG, FONT_BTN, FONT_HEADING
     try:
-        scale = float(root.tk.call('tk', 'scaling'))
+        dpi_scale = float(root.tk.call('tk', 'scaling'))
         if sys.platform == "win32":
-            FONT_SCALE = max(1.0, scale / 1.0)
+            dpi_scale = max(1.0, dpi_scale / 1.0)
         elif sys.platform == "darwin":
-            FONT_SCALE = max(1.0, scale / 1.333)
+            dpi_scale = max(1.0, dpi_scale / 1.333)
         else:
-            FONT_SCALE = 1.0
+            dpi_scale = 1.0
     except Exception:
-        FONT_SCALE = 1.0
+        dpi_scale = 1.0
+
+    user_scale = _load_font_scale()
+    FONT_SCALE = dpi_scale * user_scale
 
     def fs(size):
         return max(int(size * FONT_SCALE + 0.5), size)
