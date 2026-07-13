@@ -415,6 +415,7 @@ class BioPaperMinerApp:
             ("🔄 全流程 Pipeline", "pipeline", self._activate_pipeline),
             ("🏷️ PDF 重命名", "rename", self._activate_rename),
             ("📊 查看报告", "report", self._activate_report),
+            ("[CONFIG] 设置", "settings", self._activate_settings),
             ("⚙️  配置", "config", self._activate_config),
         ]
         for text, key, callback in nav_callbacks:
@@ -445,6 +446,7 @@ class BioPaperMinerApp:
             "config":   ModulePanel(self.content, self.root, "配置"),
             "refs":     ModulePanel(self.content, self.root, "提取参考文献"),
             "rename":   ModulePanel(self.content, self.root, "PDF 重命名"),
+            "settings": ModulePanel(self.content, self.root, "设置"),
         }
 
         # 初始化各面板参数
@@ -455,6 +457,7 @@ class BioPaperMinerApp:
         self._init_config_panel()
         self._init_refs_panel()
         self._init_rename_panel()
+        self._init_settings_panel()
 
         # 全局运行/停止按钮
         btn_bar = tk.Frame(self.content, bg=COLORS["bg_primary"])
@@ -667,7 +670,7 @@ class BioPaperMinerApp:
         tk.Checkbutton(cb, text="仅预览，不重命名", variable=p._dry_run,
                        bg=COLORS["bg_primary"], fg=COLORS["fg_text"],
                        selectcolor=COLORS["bg_button"]).pack(side=tk.LEFT)
-        p._use_analysis = tk.BooleanVar(value=True)
+        p._use_analysis = tk.BooleanVar(value=False)
         tk.Checkbutton(cb, text="使用已有分析结果加速", variable=p._use_analysis,
                        bg=COLORS["bg_primary"], fg=COLORS["fg_text"],
                        selectcolor=COLORS["bg_button"]).pack(side=tk.LEFT, padx=(10,0))
@@ -686,6 +689,25 @@ class BioPaperMinerApp:
                 p._analysis_json_entry.grid(row=3, column=1, sticky=tk.EW, pady=2, padx=(5, 0))
                 p._analysis_json_btn.grid(row=3, column=2, padx=(5, 0), pady=2)
         p._use_analysis.trace_add("write", toggle_json_field)
+
+    def _init_settings_panel(self):
+        p = self.panels["settings"]
+        from biopaperminer.config_editor import get
+        current = _load_font_scale()
+        tk.Label(p.param_frame, text="字体大小:", font=FONT_LABEL,
+                 fg=COLORS["fg_text"], bg=COLORS["bg_primary"]).grid(
+            row=0, column=0, sticky=tk.W, pady=2)
+        p._font_var = tk.StringVar(value=str(current))
+        ttk.Combobox(p.param_frame, textvariable=p._font_var,
+                     values=["0.8", "0.9", "1.0", "1.1", "1.2", "1.3", "1.5", "2.0"],
+                     state="readonly", width=43).grid(
+            row=0, column=1, sticky=tk.EW, pady=2, padx=(5, 0))
+        p.param_frame.columnconfigure(1, weight=1)
+        tk.Label(p.param_frame,
+                 text="提示: 修改后点击 [运行] 即刻生效",
+                 font=FONT_LABEL, fg=COLORS["fg_dim"],
+                 bg=COLORS["bg_primary"]).grid(
+            row=1, column=0, columnspan=3, sticky=tk.W, pady=(4,0))
 
     def _init_config_panel(self):
         from biopaperminer.config_editor import EDITABLE_FIELDS, get
@@ -765,6 +787,10 @@ class BioPaperMinerApp:
     def _activate_rename(self):
         self._show_panel("rename")
         self.panels["rename"].log("切换到: PDF 重命名")
+
+    def _activate_settings(self):
+        self._show_panel("settings")
+        self.panels["settings"].log("切换到: 设置")
 
     def _activate_config(self):
         self._show_panel("config")
