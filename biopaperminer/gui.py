@@ -21,13 +21,15 @@ from typing import Optional
 try:
     import tkinter as tk
     from tkinter import ttk, messagebox, filedialog, scrolledtext
+    from tkinterdnd2 import DND_FILES, TkinterDnD
 except ImportError:
-    print("❌ tkinter 不可用。")
+    print("❌ tkinter / tkinterdnd2 不可用。")
     print()
-    print("conda 环境（推荐）: conda activate biopaperminer && python main.py gui")
-    print("pyenv 环境: brew install tcl-tk 后重装 Python")
+    print("安装依赖: pip install tkinterdnd2")
     print()
-    print("或者使用 TUI 模式（无需 tkinter）：")
+    print("conda 环境: conda activate biopaperminer && pip install tkinterdnd2")
+    print()
+    print("或者使用 TUI 模式（无需 GUI）：")
     print("  python main.py tui")
     sys.exit(1)
 
@@ -188,6 +190,18 @@ class ModulePanel:
 
         widget.bind("<Button-3>", show_menu)
 
+    def _on_drop(self, event, var: tk.StringVar):
+        """处理文件拖放"""
+        if event.data:
+            # tkinterdnd2 返回路径用 {} 包裹多文件，用空格分隔
+            raw = event.data.strip()
+            # 移除花括号
+            raw = raw.replace('{', '').replace('}', '')
+            # 取第一个路径
+            path = raw.split()[0].strip() if raw else ""
+            if path:
+                var.set(path)
+
     def _paste_path(self, var: tk.StringVar):
         """从剪贴板粘贴路径"""
         try:
@@ -229,9 +243,16 @@ class ModulePanel:
             )
 
         widget.grid(row=row, column=1, sticky=tk.EW, pady=2, padx=(5, 0))
-        # 给路径类型字段添加右键粘贴菜单
+        # 给路径类型字段添加拖放 + 右键粘贴
         if "目录" in label or "文件" in label or "路径" in label or "输出" in label:
             self._add_path_menu(widget, var)
+            # 注册拖放目标
+            if hasattr(self._root, 'drop_target_register'):
+                try:
+                    widget.drop_target_register(DND_FILES)
+                    widget.dnd_bind('<<Drop>>', lambda e, v=var: self._on_drop(e, v))
+                except Exception:
+                    pass
 
         btn = None
         if "目录" in label:
@@ -1035,7 +1056,7 @@ class BioPaperMinerApp:
 
 
 def main():
-    root = tk.Tk()
+    root = TkinterDnD.Tk()
     if sys.platform == "win32":
         try:
             import ctypes
