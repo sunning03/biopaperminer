@@ -180,6 +180,9 @@ class ModulePanel:
         self._root.after(0, self._log_safe, msg, level)
 
     def _log_safe(self, msg: str, level: str):
+        # 去掉 emoji 图标（保留中文和英文）
+        import re
+        msg = re.sub(r'[\U0001F300-\U0001FFFF\u2600-\u27BF\u2700-\u27BF\u2B50\u2705\u2764\ufe0f]', '', msg)
         ts = datetime.now().strftime("%H:%M:%S")
         ct = level if level in ("error", "success", "warning", "info") else "info"
         self.log_text.config(state=tk.NORMAL)
