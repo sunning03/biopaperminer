@@ -409,28 +409,32 @@ class BioPaperMinerApp:
         self.nav_var = tk.StringVar(value="search")
         self.nav_items = []
         nav_callbacks = [
-            ("PubMed 检索", "search", self._activate_search),
+            ("PubMed文献检索", "search", self._activate_search),
             ("提取参考文献", "refs", self._activate_refs),
-            ("PDF 下载", "download", self._activate_download),
-            ("全流程 Pipeline", "pipeline", self._activate_pipeline),
-            ("PDF 重命名", "rename", self._activate_rename),
+            ("PDF文献下载", "download", self._activate_download),
+            ("PDF文献自动分析", "pipeline", self._activate_pipeline),
+            ("PDF文献重命名", "rename", self._activate_rename),
             ("查看报告", "report", self._activate_report),
             ("设置", "settings", self._activate_settings),
             ("配置", "config", self._activate_config),
         ]
         for text, key, callback in nav_callbacks:
-            rb = tk.Radiobutton(nav, text=text, font=FONT_BTN,
+            # 圆角容器
+            f = tk.Frame(nav, bg=COLORS["bg_button"], bd=1,
+                         relief=tk.RAISED, highlightbackground=COLORS["border"])
+            f.pack(pady=(6, 4), fill=tk.X, padx=3)
+            rb = tk.Radiobutton(f, text=text, font=FONT_BTN,
                                 fg=COLORS["fg_text"],
                                 bg=COLORS["bg_button"],
                                 activebackground=COLORS["bg_button_hover"],
                                 activeforeground="white",
                                 selectcolor=COLORS["bg_active"],
-                                relief=tk.RAISED, bd=1,
-                                cursor="hand2", width=20, anchor=tk.W,
+                                relief=tk.FLAT, bd=0,
+                                cursor="hand2", width=22, anchor=tk.W,
                                 value=key,
                                 variable=self.nav_var,
                                 command=callback)
-            rb.pack(pady=(4, 2), fill=tk.X)
+            rb.pack(fill=tk.X, padx=6, pady=3)
             self.nav_items.append(rb)
 
         # ── 右侧内容区 ──
