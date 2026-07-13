@@ -700,11 +700,11 @@ class BioPaperMinerApp:
         p._font_var = tk.StringVar(value=str(current))
         ttk.Combobox(p.param_frame, textvariable=p._font_var,
                      values=["0.8", "0.9", "1.0", "1.1", "1.2", "1.3", "1.5", "2.0"],
-                     state="readonly", width=43).grid(
+                     state="normal", width=43).grid(
             row=0, column=1, sticky=tk.EW, pady=2, padx=(5, 0))
         p.param_frame.columnconfigure(1, weight=1)
         tk.Label(p.param_frame,
-                 text="提示: 修改后点击 [运行] 即刻生效",
+                 text="提示: 可选择预设值或直接输入(0.5~3.0)，点击 [运行] 生效",
                  font=FONT_LABEL, fg=COLORS["fg_dim"],
                  bg=COLORS["bg_primary"]).grid(
             row=1, column=0, columnspan=3, sticky=tk.W, pady=(4,0))
@@ -1038,9 +1038,17 @@ class BioPaperMinerApp:
 
     def _do_settings(self, p: ModulePanel):
         from biopaperminer.config_editor import save
-        val = p._font_var.get()
-        save({"FONT_SCALE": val})
-        scale = float(val)
+        val = p._font_var.get().strip()
+        # 校验输入
+        try:
+            scale = float(val)
+            if scale < 0.5 or scale > 3.0:
+                p.log(f"请输入 0.5~3.0 之间的值", "error")
+                return
+        except ValueError:
+            p.log(f"无效的数值: {val}", "error")
+            return
+        save({"FONT_SCALE": str(scale)})
         # 重新计算字体
         global FONT_SCALE, FONT_TITLE, FONT_LABEL, FONT_ENTRY, FONT_LOG, FONT_BTN, FONT_HEADING
         try:
