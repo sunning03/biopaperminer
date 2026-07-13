@@ -23,7 +23,7 @@ from typing import List, Dict, Optional
 try:
     import requests
 except ImportError:
-    print("❌ 需要安装 requests 库: pip install requests")
+    print("[ERR] 需要安装 requests 库: pip install requests")
     sys.exit(1)
 
 
@@ -94,7 +94,7 @@ class PubMedDownloader:
         if maxdate:
             params["maxdate"] = maxdate
 
-        cprint(f"\n🔍 [ESearch] 正在搜索: {query}", Colors.OKBLUE)
+        cprint(f"\n[SEARCH] [ESearch] 正在搜索: {query}", Colors.OKBLUE)
 
         # 带重试的请求（应对网络超时）
         max_retries = 3
@@ -115,13 +115,13 @@ class PubMedDownloader:
                     requests.exceptions.ConnectionError) as e:
                 last_error = e
                 delay = 5 * (2 ** attempt)  # 5s, 10s, 20s
-                cprint(f"   ⚠️  连接超时（{delay}s 后重试 {attempt+1}/{max_retries}）: {e}", Colors.WARNING)
+                cprint(f"   [WARN]  连接超时（{delay}s 后重试 {attempt+1}/{max_retries}）: {e}", Colors.WARNING)
                 time.sleep(delay)
             except requests.exceptions.RequestException as e:
                 raise  # 非超时错误直接抛出
 
-        cprint(f"   ❌ 搜索失败，无法连接到 NCBI（已重试 {max_retries} 次）", Colors.FAIL)
-        cprint(f"   💡 建议: 配置代理（--proxy 或 HTTPS_PROXY 环境变量）或检查网络", Colors.WARNING)
+        cprint(f"   [ERR] 搜索失败，无法连接到 NCBI（已重试 {max_retries} 次）", Colors.FAIL)
+        cprint(f"   [TIP] 建议: 配置代理（--proxy 或 HTTPS_PROXY 环境变量）或检查网络", Colors.WARNING)
         raise last_error or ConnectionError("PubMed 连接失败")
 
     # ---- EFetch ----
@@ -130,7 +130,7 @@ class PubMedDownloader:
             "db": "pubmed", "id": ",".join(pmids),
             "retmode": "xml", "rettype": "abstract",
         })
-        cprint(f"📥 [EFetch] 正在获取 {len(pmids)} 篇文献详情...", Colors.OKBLUE)
+        cprint(f"[FETCH] [EFetch] 正在获取 {len(pmids)} 篇文献详情...", Colors.OKBLUE)
         resp = self.session.get(f"{self.BASE_URL}/efetch.fcgi", params=params, timeout=60)
         resp.raise_for_status()
         self._sleep()
@@ -141,7 +141,7 @@ class PubMedDownloader:
         params = self._build_params({
             "db": "pubmed", "id": ",".join(pmids), "retmode": "json",
         })
-        cprint(f"📋 [ESummary] 正在获取 {len(pmids)} 篇摘要信息...", Colors.OKBLUE)
+        cprint(f"[SUMMARY] [ESummary] 正在获取 {len(pmids)} 篇摘要信息...", Colors.OKBLUE)
         resp = self.session.get(f"{self.BASE_URL}/esummary.fcgi", params=params, timeout=60)
         resp.raise_for_status()
         data = resp.json()
@@ -215,7 +215,7 @@ class PubMedDownloader:
             path = os.path.join(output_dir, "results.json")
             with open(path, "w", encoding="utf-8") as f:
                 json.dump(articles, f, ensure_ascii=False, indent=2)
-            cprint(f"  ✅ JSON  → {path}", Colors.OKGREEN)
+            cprint(f"  [DONE] JSON  → {path}", Colors.OKGREEN)
             saved_files.append(path)
 
         if "csv" in formats:
@@ -226,7 +226,7 @@ class PubMedDownloader:
                 for art in articles:
                     row = {k: "; ".join(v) if isinstance(v, list) else v for k, v in art.items()}
                     writer.writerow(row)
-            cprint(f"  ✅ CSV   → {path}", Colors.OKGREEN)
+            cprint(f"  [DONE] CSV   → {path}", Colors.OKGREEN)
             saved_files.append(path)
 
         if "txt" in formats:
@@ -246,7 +246,7 @@ class PubMedDownloader:
                     f.write("-" * 40 + " 摘要 " + "-" * 35 + "\n")
                     f.write(f"{art['abstract'] or '(无摘要)'}\n")
                     f.write("=" * 80 + "\n\n")
-            cprint(f"  ✅ TXT   → {path}", Colors.OKGREEN)
+            cprint(f"  [DONE] TXT   → {path}", Colors.OKGREEN)
             saved_files.append(path)
 
         return saved_files
@@ -266,7 +266,7 @@ def cmd_search(args, downloader):
         maxdate=args.maxdate,
     )
     if not pmids:
-        cprint("⚠️  未找到相关文献。", Colors.WARNING)
+        cprint("[WARN]  未找到相关文献。", Colors.WARNING)
         return
 
     # 分批获取
@@ -278,7 +278,7 @@ def cmd_search(args, downloader):
         articles = PubMedDownloader.parse_xml(xml_text)
         all_articles.extend(articles)
 
-    cprint(f"\n📊 共解析 {len(all_articles)} 篇文献\n", Colors.HEADER)
+    cprint(f"\n[STATS] 共解析 {len(all_articles)} 篇文献\n", Colors.HEADER)
 
     # 控制台预览
     preview_count = min(args.preview, len(all_articles))
@@ -299,10 +299,10 @@ def cmd_search(args, downloader):
 
     # 保存
     if not args.no_save:
-        cprint("💾 正在保存文件...", Colors.OKBLUE)
+        cprint("[SAVE] 正在保存文件...", Colors.OKBLUE)
         downloader.save_results(all_articles, args.output, formats)
 
-    cprint("✅ 完成!", Colors.OKGREEN)
+    cprint("[DONE] 完成!", Colors.OKGREEN)
 
 
 def cmd_fetch(args, downloader):
@@ -313,7 +313,7 @@ def cmd_fetch(args, downloader):
     xml_text = downloader.fetch_fulltext_xml(pmids)
     articles = PubMedDownloader.parse_xml(xml_text)
 
-    cprint(f"\n📊 共解析 {len(articles)} 篇文献\n", Colors.HEADER)
+    cprint(f"\n[STATS] 共解析 {len(articles)} 篇文献\n", Colors.HEADER)
 
     for i, art in enumerate(articles):
         cprint(f"{'─' * 70}", Colors.ENDC)
@@ -330,10 +330,10 @@ def cmd_fetch(args, downloader):
     cprint(f"{'─' * 70}\n", Colors.ENDC)
 
     if not args.no_save:
-        cprint("💾 正在保存文件...", Colors.OKBLUE)
+        cprint("[SAVE] 正在保存文件...", Colors.OKBLUE)
         downloader.save_results(articles, args.output, formats)
 
-    cprint("✅ 完成!", Colors.OKGREEN)
+    cprint("[DONE] 完成!", Colors.OKGREEN)
 
 
 def cmd_summary(args, downloader):
@@ -341,7 +341,7 @@ def cmd_summary(args, downloader):
     pmids = args.pmids
     articles = downloader.fetch_summary(pmids)
 
-    cprint(f"\n📊 共获取 {len(articles)} 篇文献摘要\n", Colors.HEADER)
+    cprint(f"\n[STATS] 共获取 {len(articles)} 篇文献摘要\n", Colors.HEADER)
 
     for i, art in enumerate(articles):
         cprint(f"{'─' * 70}", Colors.ENDC)
@@ -354,14 +354,14 @@ def cmd_summary(args, downloader):
     cprint(f"{'─' * 70}\n", Colors.ENDC)
 
     if not args.no_save:
-        cprint("💾 正在保存文件...", Colors.OKBLUE)
+        cprint("[SAVE] 正在保存文件...", Colors.OKBLUE)
         os.makedirs(args.output, exist_ok=True)
         path = os.path.join(args.output, "summary.json")
         with open(path, "w", encoding="utf-8") as f:
             json.dump(articles, f, ensure_ascii=False, indent=2)
-        cprint(f"  ✅ JSON  → {path}", Colors.OKGREEN)
+        cprint(f"  [DONE] JSON  → {path}", Colors.OKGREEN)
 
-    cprint("✅ 完成!", Colors.OKGREEN)
+    cprint("[DONE] 完成!", Colors.OKGREEN)
 
 
 # ======================== argparse 构建 ========================

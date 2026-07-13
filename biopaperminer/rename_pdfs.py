@@ -229,7 +229,7 @@ def rename_pdf(pdf_path: Path, output_dir: Path = None,
 
     text, _, _ = PDFExtractor.extract(pdf_path)
     if not text or len(text) < 50:
-        print(f"  ⚠️  无法提取文本: {pdf_path.name}")
+        print(f"  [WARN]  无法提取文本: {pdf_path.name}")
         return None
 
     meta = get_metadata(pdf_path, text, analysis_cache)
@@ -244,7 +244,7 @@ def rename_pdf(pdf_path: Path, output_dir: Path = None,
     target = (output_dir or pdf_path.parent) / new_name
 
     if dry_run:
-        print(f"  🔄 {pdf_path.name} → {new_name}")
+        print(f"   {pdf_path.name} → {new_name}")
         return target
 
     counter = 1
@@ -256,10 +256,10 @@ def rename_pdf(pdf_path: Path, output_dir: Path = None,
 
     if copy_mode:
         shutil.copy2(pdf_path, target)
-        print(f"  ✅ {pdf_path.name} → {target.name}（已复制）")
+        print(f"  [DONE] {pdf_path.name} → {target.name}（已复制）")
     else:
         pdf_path.rename(target)
-        print(f"  ✅ {pdf_path.name} → {target.name}（已移动）")
+        print(f"  [DONE] {pdf_path.name} → {target.name}（已移动）")
     return target
 
 
@@ -284,14 +284,14 @@ def main():
             pdf_files.append(p)
 
     if not pdf_files:
-        print("❌ 未找到 PDF 文件")
+        print("[ERR] 未找到 PDF 文件")
         sys.exit(1)
 
     analysis_cache = load_analysis_cache(args.analysis_json)
     output_dir = Path(args.output) if args.output else None
 
-    print(f"📄 共 {len(pdf_files)} 个 PDF 文件\n" if not args.dry_run else
-          f"📄 预览 {len(pdf_files)} 个 PDF 文件（--dry-run）\n")
+    print(f" 共 {len(pdf_files)} 个 PDF 文件\n" if not args.dry_run else
+          f" 预览 {len(pdf_files)} 个 PDF 文件（--dry-run）\n")
 
     renamed = 0
     for pdf in pdf_files:
@@ -302,7 +302,7 @@ def main():
             renamed += 1
 
     if not args.dry_run:
-        print(f"\n✅ 已重命名 {renamed}/{len(pdf_files)} 个文件")
+        print(f"\n[DONE] 已重命名 {renamed}/{len(pdf_files)} 个文件")
     else:
         print(f"\n📋 预览完成，共 {renamed} 个文件")
 

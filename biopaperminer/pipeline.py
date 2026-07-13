@@ -99,7 +99,7 @@ def _collect_pdf_files(pdf_dir=None, pdf_files_list=None) -> list:
                         seen.add(p.resolve())
                         pdf_files.append(p)
         else:
-            print(f"  ⚠️  目录不存在: {pdf_dir}")
+            print(f"  [WARN]  目录不存在: {pdf_dir}")
 
     if pdf_files_list:
         for f in pdf_files_list:
@@ -109,7 +109,7 @@ def _collect_pdf_files(pdf_dir=None, pdf_files_list=None) -> list:
                     seen.add(p.resolve())
                     pdf_files.append(p)
             else:
-                print(f"  ⚠️  跳过（非 PDF 或不存在）: {f}")
+                print(f"  [WARN]  跳过（非 PDF 或不存在）: {f}")
 
     return pdf_files
 
@@ -128,7 +128,7 @@ def step_mineru(pdf_files: list, output_dir: Path, token: str,
     client = MinerUClient(api_token=token)
 
     if not pdf_files:
-        print("  ⚠️  未找到 PDF 文件")
+        print("  [WARN]  未找到 PDF 文件")
         return []
 
     results: List[tuple] = []
@@ -143,12 +143,12 @@ def step_mineru(pdf_files: list, output_dir: Path, token: str,
 
         # ── 跳过已成功的 ──
         if fs.get("mineru") == "done" and md_path.exists():
-            print(f"\n  [{i+1}/{total}] {stem} — ✅ 已有缓存，跳过")
+            print(f"\n  [{i+1}/{total}] {stem} — [DONE] 已有缓存，跳过")
             results.append((md_path, stem))
             skipped += 1
             continue
 
-        print(f"\n  [{i+1}/{total}] 📄 {stem}")
+        print(f"\n  [{i+1}/{total}] [PDF] {stem}")
         print(f"     路径: {pdf_path}")
 
         # ── 执行 MinerU ──
@@ -157,11 +157,11 @@ def step_mineru(pdf_files: list, output_dir: Path, token: str,
 
         if md_text:
             set_file_state(state, stem, "mineru", "done")
-            print(f"    ✅ MinerU 解析成功 → {md_path.name}")
+            print(f"    [DONE] MinerU 解析成功 → {md_path.name}")
             print(f"      文本长度: {len(md_text)} 字符")
             results.append((md_path, stem))
         else:
-            print(f"    ⚠️  MinerU API 失败，尝试 PyMuPDF 回退...")
+            print(f"    [WARN]  MinerU API 失败，尝试 PyMuPDF 回退...")
             # 尝试 PyMuPDF fallback
             try:
                 from biopaperminer.analyzer import PDFExtractor
@@ -169,11 +169,11 @@ def step_mineru(pdf_files: list, output_dir: Path, token: str,
                 md_out.mkdir(parents=True, exist_ok=True)
                 md_path.write_text(text, encoding="utf-8")
                 set_file_state(state, stem, "mineru", "done")
-                print(f"    ⚠️  PyMuPDF fallback → {md_path} ({len(text)} 字符)")
+                print(f"    [WARN]  PyMuPDF fallback → {md_path} ({len(text)} 字符)")
                 results.append((md_path, stem))
             except Exception as e:
                 set_file_state(state, stem, "mineru", "failed")
-                print(f"    ❌ 解析失败: {e}")
+                print(f"    [FAIL] 解析失败: {e}")
 
         # 每 5 篇保存一次状态，减少 I/O
         if (i + 1) % 5 == 0:
@@ -182,7 +182,7 @@ def step_mineru(pdf_files: list, output_dir: Path, token: str,
     # 最终保存
     save_state(output_dir, state)
 
-    print(f"\n  ✅ MinerU 完成: 成功 {len(results)}, 跳过 {skipped}, 总文件 {total}")
+    print(f"\n  [DONE] MinerU 完成: 成功 {len(results)}, 跳过 {skipped}, 总文件 {total}")
     return results
 
 
@@ -198,20 +198,20 @@ def _analyze_single_file(md_path: Path, pdf_stem: str, idx: int, total: int,
 
     # 跳过已成功的
     if fs.get("llm") == "done" and not retry_failed:
-        print(f"  [{idx}/{total}] {pdf_stem} — ✅ 已有缓存，跳过")
+        print(f"  [{idx}/{total}] {pdf_stem} — [DONE] 已有缓存，跳过")
         return None
     if retry_failed and fs.get("llm") == "done":
-        print(f"  [{idx}/{total}] {pdf_stem} — ✅ 已成功，跳过")
+        print(f"  [{idx}/{total}] {pdf_stem} — [DONE] 已成功，跳过")
         return None
 
-    print(f"\n  [{idx}/{total}] 🧠 {pdf_stem}")
+    print(f"\n  [{idx}/{total}] [AI] {pdf_stem}")
 
     # 读取 Markdown 文本
     print(f"     正在读取 Markdown 文本...")
     try:
         md_text = md_path.read_text(encoding="utf-8")
     except Exception as e:
-        print(f"    ❌ 读取 MD 失败: {e}")
+        print(f"    [FAIL] 读取 MD 失败: {e}")
         with state_lock:
             set_file_state(state, pdf_stem, "llm", "failed")
             _periodic_save(output_dir, state, state_lock)
@@ -241,23 +241,23 @@ def _analyze_single_file(md_path: Path, pdf_stem: str, idx: int, total: int,
                             set_file_state(state, pdf_stem, "llm", "done",
                                           pa.importance_score)
                             _periodic_save(output_dir, state, state_lock)
-                        print(f"    ✅ 分析成功 — 标题: {pa.title[:60]}")
+                        print(f"    [DONE] 分析成功 — 标题: {pa.title[:60]}")
                         print(f"       重要性评分: {pa.importance_score}/10")
                         return pa
                     else:
-                        print(f"    ⚠️  数据转换失败")
+                        print(f"    [WARN]  数据转换失败")
                 else:
-                    print(f"    ⚠️  JSON 解析失败，重试 {attempt + 1}/{MAX_RETRIES}")
+                    print(f"    [WARN]  JSON 解析失败，重试 {attempt + 1}/{MAX_RETRIES}")
             else:
-                print(f"    ⚠️  LLM 返回空结果，重试 {attempt + 1}/{MAX_RETRIES}")
+                print(f"    [WARN]  LLM 返回空结果，重试 {attempt + 1}/{MAX_RETRIES}")
         except Exception as e:
-            print(f"    ⚠️  [{pdf_stem}] 请求错误: {e}，重试 {attempt + 1}/{MAX_RETRIES}")
+            print(f"    [WARN]  [{pdf_stem}] 请求错误: {e}，重试 {attempt + 1}/{MAX_RETRIES}")
 
         if attempt < MAX_RETRIES - 1:
             delay = RETRY_DELAY * (2 ** attempt)
             time.sleep(delay)
 
-    print(f"    ❌ [{pdf_stem}] 分析失败（{MAX_RETRIES} 次重试后）")
+    print(f"    [FAIL] [{pdf_stem}] 分析失败（{MAX_RETRIES} 次重试后）")
     with state_lock:
         set_file_state(state, pdf_stem, "llm", "failed")
         _periodic_save(output_dir, state, state_lock)
@@ -316,13 +316,13 @@ def step_llm(md_files: list, output_dir: Path, state: dict,
                 if result is not None:
                     results.append(result)
             except Exception as e:
-                print(f"    ❌ [{pdf_stem}] 线程异常: {e}")
+                print(f"    [FAIL] [{pdf_stem}] 线程异常: {e}")
 
     # 最终保存
     save_state(output_dir, state)
 
     skipped = total - len(results)
-    print(f"\n  ✅ LLM 分析完成: 成功 {len(results)}, 跳过/失败 {skipped}, 总文件 {total}")
+    print(f"\n  [DONE] LLM 分析完成: 成功 {len(results)}, 跳过/失败 {skipped}, 总文件 {total}")
     return results
 
 
@@ -404,7 +404,7 @@ def _dict_to_paper(data: dict, md_path: Path, pdf_stem: str,
             raw_text_length=len(md_text) if md_text else 0,
         )
     except Exception as e:
-        print(f"    ⚠️  构建 PaperAnalysis 失败: {e}")
+        print(f"    [WARN]  构建 PaperAnalysis 失败: {e}")
         return None
 
 
@@ -542,11 +542,11 @@ def _run_pipeline(args):
     # Step 1: MinerU（支持目录 / 单文件 / 多文件）
     if not args.skip_mineru and (args.pdf_dir or args.pdf_files):
         if not token:
-            print("❌ 需要 MinerU Token（--token / MINERU_API_TOKEN）")
+            print("[FAIL] 需要 MinerU Token（--token / MINERU_API_TOKEN）")
             sys.exit(1)
         pdf_list = _collect_pdf_files(pdf_dir=args.pdf_dir, pdf_files_list=args.pdf_files)
         if not pdf_list:
-            print("❌ 未找到任何 PDF 文件")
+            print("[FAIL] 未找到任何 PDF 文件")
             sys.exit(1)
         md_files = step_mineru(pdf_list, output_dir, token, state)
 
@@ -561,7 +561,7 @@ def _run_pipeline(args):
                     md_files.append((md_path, md_path.stem))
 
     if not md_files:
-        print("⚠️  没有需要处理的文件")
+        print("[WARN]  没有需要处理的文件")
         return
 
     # Step 2: LLM
@@ -571,7 +571,7 @@ def _run_pipeline(args):
                                  retry_failed=args.retry_failed)
 
     if not paper_results:
-        print("⚠️  本次没有新增分析结果")
+        print("[WARN]  本次没有新增分析结果")
         existing_json = output_dir / "analysis_results.json"
         if existing_json.exists():
             print("  但检测到已有结果文件，使用已有数据重新生成报告")
@@ -611,7 +611,7 @@ def _merge_and_report(new_results: List[PaperAnalysis], output_dir: Path,
     # 如果新结果覆盖了旧结果，打印提示
     overlap = set(old_by_hash.keys()) & set(new_by_hash.keys())
     if overlap:
-        print(f"  ⚠️  发现 {len(overlap)} 篇重复文献，将用新结果覆盖")
+        print(f"  [WARN]  发现 {len(overlap)} 篇重复文献，将用新结果覆盖")
 
     # 合并：旧结果 + 新结果（新结果覆盖同 hash 的旧记录）
     merged = {**old_by_hash, **new_by_hash}
