@@ -23,7 +23,7 @@ try:
     from tkinter import ttk, messagebox, filedialog, scrolledtext
     from tkinterdnd2 import DND_FILES, TkinterDnD
 except ImportError:
-    print("❌ tkinter / tkinterdnd2 不可用。")
+    print("[ERR] tkinter / tkinterdnd2 不可用。")
     print()
     print("安装依赖: pip install tkinterdnd2")
     print()
@@ -107,7 +107,7 @@ def _init_fonts(root):
     FONT_TITLE   = (FONT_FAMILY, fs(22), "bold")
     FONT_LABEL   = (FONT_FAMILY, fs(11), "bold")
     FONT_ENTRY   = (FONT_FAMILY, fs(11))
-    FONT_LOG     = ("Consolas", fs(11))
+    FONT_LOG     = (FONT_FAMILY, fs(11))
     FONT_BTN     = (FONT_FAMILY, fs(12))
     FONT_HEADING = (FONT_FAMILY, fs(12), "bold")
 
@@ -116,7 +116,7 @@ def _init_fonts(root):
 FONT_TITLE = (FONT_FAMILY, 22, "bold")
 FONT_LABEL = (FONT_FAMILY, 11, "bold")
 FONT_ENTRY = (FONT_FAMILY, 11)
-FONT_LOG   = ("Consolas", 11)
+FONT_LOG   = (FONT_FAMILY, 11)
 FONT_BTN   = (FONT_FAMILY, 12)
 FONT_HEADING = (FONT_FAMILY, 12, "bold")
 
@@ -280,7 +280,7 @@ class ModulePanel:
         btn = None
         if "目录" in label:
             btn = tk.Button(
-                self.param_frame, text="📂", font=("Helvetica", 11),
+                self.param_frame, text="...", font=("Helvetica", 11),
                 fg=COLORS["fg_text"], bg=COLORS["bg_button"],
                 relief=tk.RAISED, bd=1, cursor="hand2",
                 command=lambda v=var: self._browse(v),
@@ -290,7 +290,7 @@ class ModulePanel:
 
         elif file_ext:
             btn = tk.Button(
-                self.param_frame, text="📄", font=("Helvetica", 11),
+                self.param_frame, text="...", font=("Helvetica", 11),
                 fg=COLORS["fg_text"], bg=COLORS["bg_button"],
                 relief=tk.RAISED, bd=1, cursor="hand2",
                 command=lambda v=var, ext=file_ext: self._browse_files(v, ext),
@@ -301,7 +301,7 @@ class ModulePanel:
         elif secret:
             widget.config(show="*")
             btn = tk.Button(
-                self.param_frame, text="👁", font=("Helvetica", 11),
+                self.param_frame, text="*", font=("Helvetica", 11),
                 fg=COLORS["fg_text"], bg=COLORS["bg_button"],
                 relief=tk.RAISED, bd=1, cursor="hand2",
                 width=2,
@@ -311,10 +311,10 @@ class ModulePanel:
             def toggle(e=widget, b=btn):
                 if e.cget("show") == "*":
                     e.config(show="")
-                    b.config(text="🙈")
+                    b.config(text="*")
                 else:
                     e.config(show="*")
-                    b.config(text="👁")
+                    b.config(text="*")
             btn.config(command=toggle)
 
         self.param_frame.columnconfigure(1, weight=1)
@@ -539,7 +539,7 @@ class BioPaperMinerApp:
                                 fg=COLORS["fg_text"], bg=COLORS["bg_entry"],
                                 relief=tk.RAISED, bd=1, width=45)
         p._dir_entry.grid(row=1, column=1, sticky=tk.EW, pady=2, padx=(5, 0))
-        p._dir_btn = tk.Button(pf, text="📂", font=("Helvetica", 11),
+        p._dir_btn = tk.Button(pf, text="...", font=("Helvetica", 11),
                                fg=COLORS["fg_text"], bg=COLORS["bg_button"],
                                relief=tk.RAISED, bd=1, cursor="hand2",
                                command=lambda v=p._dir_var: p._browse(v), width=2)
@@ -550,7 +550,7 @@ class BioPaperMinerApp:
         p._file_entry = tk.Entry(pf, textvariable=p._file_var, font=FONT_ENTRY,
                                  fg=COLORS["fg_text"], bg=COLORS["bg_entry"],
                                  relief=tk.RAISED, bd=1, width=45)
-        p._file_btn = tk.Button(pf, text="📄", font=("Helvetica", 11),
+        p._file_btn = tk.Button(pf, text="...", font=("Helvetica", 11),
                                 fg=COLORS["fg_text"], bg=COLORS["bg_button"],
                                 relief=tk.RAISED, bd=1, cursor="hand2",
                                 command=lambda v=p._file_var: p._browse_files(v, "*.pdf"),
@@ -648,7 +648,7 @@ class BioPaperMinerApp:
                 p._refs_file_var.set(";".join(files))
                 ModulePanel._last_dir = str(Path(files[0]).parent)
 
-        tk.Button(pf, text="📄", font=("Helvetica", 11),
+        tk.Button(pf, text="...", font=("Helvetica", 11),
                   fg=COLORS["fg_text"], bg=COLORS["bg_button"],
                   relief=tk.RAISED, bd=1, cursor="hand2",
                   command=browse_refs_file, width=2).grid(
@@ -668,7 +668,7 @@ class BioPaperMinerApp:
                                           relief=tk.RAISED, bd=1, width=45)
         p._analysis_json_label = tk.Label(p.param_frame, text="分析结果 JSON:", font=FONT_LABEL,
                                           fg=COLORS["fg_text"], bg=COLORS["bg_primary"])
-        p._analysis_json_btn = tk.Button(p.param_frame, text="📄", font=("Helvetica", 11),
+        p._analysis_json_btn = tk.Button(p.param_frame, text="...", font=("Helvetica", 11),
                                          fg=COLORS["fg_text"], bg=COLORS["bg_button"],
                                          relief=tk.RAISED, bd=1, cursor="hand2",
                                          command=lambda v=p._analysis_json_var: p._browse_files(v, "*.json"),
@@ -906,7 +906,7 @@ class BioPaperMinerApp:
 
         ip = Path(inp)
         if not ip.exists():
-            p.log(f"❌ 路径不存在: {inp}", "error")
+            p.log(f"[ERR] 路径不存在: {inp}", "error")
             self.root.after(0, messagebox.showerror, "错误", f"路径不存在:\n{inp}")
             return
         if ip.is_dir():
@@ -914,7 +914,7 @@ class BioPaperMinerApp:
             for ext in ("*.csv", "*.xlsx", "*.xls"):
                 cands.extend(ip.glob(ext))
             if not cands:
-                p.log(f"❌ 目录中没有 CSV/Excel 文件: {inp}", "error")
+                p.log(f"[ERR] 目录中没有 CSV/Excel 文件: {inp}", "error")
                 self.root.after(0, messagebox.showerror, "错误",
                                f"目录中没有找到 CSV/Excel 文件:\n{inp}")
                 return
@@ -927,7 +927,7 @@ class BioPaperMinerApp:
                 p.param_vars[0].set(inp)
 
         if not Path(inp).is_file():
-            p.log(f"❌ 输入路径不是文件: {inp}", "error")
+            p.log(f"[ERR] 输入路径不是文件: {inp}", "error")
             self.root.after(0, messagebox.showerror, "错误", f"输入路径不是文件:\n{inp}")
             return
 
@@ -957,7 +957,7 @@ class BioPaperMinerApp:
                 cmd += ["--pdf-files"] + files
                 p.log(f"PDF 文件: {len(files)} 个")
             else:
-                p.log("⚠️  请选择 PDF 文件", "warning")
+                p.log("[WARN] 请选择 PDF 文件", "warning")
                 return
 
         p.log(f"输出目录: {out_dir}")
@@ -994,7 +994,7 @@ class BioPaperMinerApp:
         output = p.param_vars[0].get().strip() if len(p.param_vars) > 0 else "./references_output"
 
         if not input_file:
-            p.log("❌ 请选择输入文件", "error")
+            p.log("[ERR] 请选择输入文件", "error")
             return
 
         cmd = [sys.executable, "-m", "biopaperminer.pipeline", "refs", input_file, "-o", output]
@@ -1014,9 +1014,9 @@ class BioPaperMinerApp:
 
         p.log(f"PDF 目录: {pdf_dir}")
         p.log(f"输出目录: {out_dir}")
-        p.log("🔍 仅预览（不重命名）" if dry_run else "✏️  即将重命名")
+        p.log("[PREVIEW] 仅预览（不重命名）" if dry_run else "✏️  即将重命名")
         if copy_files:
-            p.log("📋 复制模式（保留原文件）")
+            p.log("[COPY] 复制模式（保留原文件）")
 
         cmd = [sys.executable, "-m", "biopaperminer.pipeline", "rename", pdf_dir,
                "-o", out_dir]
@@ -1099,7 +1099,7 @@ class BioPaperMinerApp:
         FONT_TITLE   = (FONT_FAMILY, fs(22), "bold")
         FONT_LABEL   = (FONT_FAMILY, fs(11), "bold")
         FONT_ENTRY   = (FONT_FAMILY, fs(11))
-        FONT_LOG     = ("Consolas", fs(11))
+        FONT_LOG     = (FONT_FAMILY, fs(11))
         FONT_BTN     = (FONT_FAMILY, fs(12))
         FONT_HEADING = (FONT_FAMILY, fs(12), "bold")
 
@@ -1126,25 +1126,25 @@ class BioPaperMinerApp:
 
         if updates:
             save(updates)
-            p.log(f"✅ 已保存 {len(updates)} 项配置到 user_config.json", "success")
+            p.log(f"[OK] 已保存 {len(updates)} 项配置到 user_config.json", "success")
             for key, val in updates.items():
                 display = val if _type != "secret" else val[:4] + "****"
                 p.log(f"  {key} = {display}")
         else:
-            p.log("⚠️  没有需要保存的配置", "warning")
+            p.log("[WARN] 没有需要保存的配置", "warning")
 
         # ── 连通性测试 ──
-        p.log("🔄 正在测试连接，请稍候...", "info")
+        p.log("[TEST] 正在测试连接，请稍候...", "info")
         try:
             from biopaperminer.analyzer import OllamaAnalyzer
             analyzer = OllamaAnalyzer()
             ok = analyzer.check_connection()
             if ok:
-                p.log("✅ LLM 服务连接成功！配置可用", "success")
+                p.log("[OK] LLM 服务连接成功！配置可用", "success")
             else:
-                p.log("❌ LLM 服务连接失败，请检查 API Key 和网络", "error")
+                p.log("[ERR] LLM 服务连接失败，请检查 API Key 和网络", "error")
         except Exception as e:
-            p.log(f"⚠️  连接测试异常: {e}", "warning")
+            p.log(f"[WARN] 连接测试异常: {e}", "warning")
 
     # ── 命令执行（子进程，捕获输出到 GUI 日志） ──
 
@@ -1175,11 +1175,11 @@ class BioPaperMinerApp:
                 if not decoded:
                     continue
                 level = "info"
-                if "✅" in decoded or "success" in decoded.lower():
+                if "[OK]" in decoded or "success" in decoded.lower():
                     level = "success"
-                elif "❌" in decoded or "error" in decoded.lower() or "failed" in decoded.lower():
+                elif "[ERR]" in decoded or "error" in decoded.lower() or "failed" in decoded.lower():
                     level = "error"
-                elif "⚠" in decoded or "warn" in decoded.lower():
+                elif "[WARN]" in decoded or "warn" in decoded.lower():
                     level = "warning"
                 panel.log(decoded, level)
             self._process.wait()
@@ -1196,7 +1196,7 @@ class BioPaperMinerApp:
         try:
             executor(panel)
         except Exception as e:
-            panel.log(f"❌ 出错: {e}", "error")
+            panel.log(f"[ERR] 出错: {e}", "error")
             import traceback
             panel.log(traceback.format_exc(), "error")
         finally:
