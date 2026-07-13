@@ -106,10 +106,10 @@ def _print_summary_html(output_dir, references):
     csv_path = output_dir / "references.csv"
     log_path = output_dir / "missing_fields.log"
     print(f"输出目录: {output_dir}/")
-    print(f"   📄 references.csv       ({len(references)} 条)")
+    print(f"    references.csv       ({len(references)} 条)")
     if log_path.exists():
         missing = len(log_path.read_text(encoding="utf-8").strip().split("\n")) - 2
-        print(f"   📋 missing_fields.log   ({missing} 条缺失记录)")
+        print(f"    missing_fields.log   ({missing} 条缺失记录)")
     print()
     for ref in references[:10]:
         doi = ref.doi.split("doi.org/")[-1] if ref.doi else "(无 DOI)"
@@ -127,10 +127,10 @@ def _print_summary_ris(output_dir, rows):
     csv_path = output_dir / "references.csv"
     log_path = output_dir / "missing_fields.log"
     print(f"输出目录: {output_dir}/")
-    print(f"   📄 references.csv       ({len(rows)} 条)")
+    print(f"    references.csv       ({len(rows)} 条)")
     if log_path.exists():
         missing = len(log_path.read_text(encoding="utf-8").strip().split("\n")) - 2
-        print(f"   📋 missing_fields.log   ({missing} 条缺失记录)")
+        print(f"    missing_fields.log   ({missing} 条缺失记录)")
     print()
     for i, row in enumerate(rows[:10], 1):
         title = row["title"][:70] + "..." if len(row["title"]) > 70 else row["title"]

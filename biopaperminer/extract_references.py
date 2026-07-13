@@ -344,10 +344,10 @@ def main():
     csv_path = output_dir / "references.csv"
     log_path = output_dir / "missing_fields.log"
     print(f"输出目录: {output_dir}/")
-    print(f"   📄 references.csv       ({len(references)} 条)")
+    print(f"    references.csv       ({len(references)} 条)")
     if log_path.exists():
         missing_count = len(log_path.read_text(encoding="utf-8").strip().split("\n")) - 2
-        print(f"   📋 missing_fields.log   ({missing_count} 条缺失记录)")
+        print(f"    missing_fields.log   ({missing_count} 条缺失记录)")
     print()
 
     # 同时在屏幕上预览前 10 条
