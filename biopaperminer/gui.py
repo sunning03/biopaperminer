@@ -56,8 +56,8 @@ COLORS = {
     "fg_dim":         "#6B7280",   # 辅助文字 - 中灰
     "border":         "#E6E8E6",   # 边框 - 极淡灰
     "run_bg":         "#2E7D32",   # 运行按钮 - 森林绿
-    "run_fg":         "#FFFFFF",   # 运行按钮文字 - 白
-    "stop_bg":        "#E53935",   # 停止按钮 - 红
+    "run_fg":         "#1F2937",   # 运行按钮文字 - 深灰黑
+    "stop_bg":        "#f05a46",   # 停止按钮 - 橙红
     "stop_fg":        "#FFFFFF",   # 停止按钮文字 - 白
 }
 
@@ -460,17 +460,17 @@ class BioPaperMinerApp:
         btn_bar = tk.Frame(self.content, bg=COLORS["bg_primary"])
         btn_bar.pack(fill=tk.X, pady=(0, 4))
 
-        self.run_btn = tk.Button(btn_bar, text="▶ 运行",
-            font=("Helvetica", 13, "bold"), fg=COLORS["run_fg"],
-            bg=COLORS["run_bg"], activebackground="#388e3c",
-            relief=tk.RAISED, bd=1, cursor="hand2", width=12,
+        self.run_btn = tk.Button(btn_bar, text="运行",
+            font=("Helvetica", 15, "bold"), fg="#1F2937",
+            bg=COLORS["run_bg"], activebackground="#388E3C",
+            relief=tk.RAISED, bd=1, cursor="hand2", width=14, height=1,
             command=self._on_run)
         self.run_btn.pack(side=tk.LEFT)
 
-        self.stop_btn = tk.Button(btn_bar, text="⏹ 停止",
-            font=("Helvetica", 13, "bold"), fg=COLORS["stop_fg"],
-            bg=COLORS["stop_bg"], activebackground="#c62828",
-            relief=tk.RAISED, bd=1, cursor="hand2", width=12,
+        self.stop_btn = tk.Button(btn_bar, text="停止",
+            font=("Helvetica", 15, "bold"), fg="#FFFFFF",
+            bg="#f05a46", activebackground="#D32F2F",
+            relief=tk.RAISED, bd=1, cursor="hand2", width=14, height=1,
             command=self._on_stop, state=tk.DISABLED)
         self.stop_btn.pack(side=tk.LEFT, padx=(8, 0))
 
