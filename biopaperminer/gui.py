@@ -1000,19 +1000,78 @@ class BioPaperMinerApp:
                 cmd += ["--analysis-json", aj_path]
         self._exec_cmd(cmd, p)
 
+    @staticmethod
+    def _apply_all_fonts(widget, font_map: dict):
+        """递归更新控件的字体"""
+        try:
+            cls = type(widget).__name__
+            if cls in ('Label', 'Button', 'Radiobutton', 'Checkbutton'):
+                f = font_map.get('label', font_map.get('btn'))
+                if f:
+                    widget.config(font=f)
+            elif cls == 'Entry':
+                f = font_map.get('entry')
+                if f:
+                    widget.config(font=f)
+            elif cls == 'Combobox':
+                f = font_map.get('entry')
+                if f:
+                    widget.config(font=f)
+            elif cls == 'ScrolledText':
+                import tkinter.scrolledtext
+                f = font_map.get('log')
+                if f:
+                    widget.config(font=f)
+            elif cls == 'LabelFrame':
+                f = font_map.get('heading')
+                if f:
+                    widget.config(font=f)
+            elif cls == 'Menu':
+                pass
+        except Exception:
+            pass
+        try:
+            for child in widget.winfo_children():
+                BioPaperMinerApp._apply_all_fonts(child, font_map)
+        except Exception:
+            pass
+
     def _do_settings(self, p: ModulePanel):
         from biopaperminer.config_editor import save
         val = p._font_var.get()
         save({"FONT_SCALE": val})
         scale = float(val)
-        # 实时应用：通过 tk scaling 缩放所有控件
-        base_dpi = 1.0
+        # 重新计算字体
+        global FONT_SCALE, FONT_TITLE, FONT_LABEL, FONT_ENTRY, FONT_LOG, FONT_BTN, FONT_HEADING
         try:
-            base_dpi = float(p._root.tk.call('tk', 'scaling'))
+            dpi = float(p._root.tk.call('tk', 'scaling'))
+            if sys.platform == "win32":
+                dpi = max(1.0, dpi / 1.0)
+            elif sys.platform == "darwin":
+                dpi = max(1.0, dpi / 1.333)
+            else:
+                dpi = 1.0
         except Exception:
-            pass
-        new_scaling = base_dpi * scale
-        p._root.tk.call('tk', 'scaling', new_scaling)
+            dpi = 1.0
+        FONT_SCALE = dpi * scale
+
+        def fs(size):
+            return max(int(size * FONT_SCALE + 0.5), size)
+
+        FONT_TITLE   = ("Helvetica", fs(22), "bold")
+        FONT_LABEL   = ("Helvetica", fs(11))
+        FONT_ENTRY   = ("Helvetica", fs(11))
+        FONT_LOG     = ("Consolas", fs(11))
+        FONT_BTN     = ("Helvetica", fs(12))
+        FONT_HEADING = ("Helvetica", fs(12), "bold")
+
+        # 实时应用到所有现有控件
+        font_map = {
+            'title': FONT_TITLE, 'label': FONT_LABEL, 'entry': FONT_ENTRY,
+            'log': FONT_LOG, 'btn': FONT_BTN, 'heading': FONT_HEADING,
+        }
+        BioPaperMinerApp._apply_all_fonts(p._root, font_map)
+        p._root.update()
         p.log(f"字体大小已实时调整为 {val} 倍", "success")
 
     def _do_config(self, p: ModulePanel):
