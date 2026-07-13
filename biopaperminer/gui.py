@@ -59,6 +59,35 @@ COLORS = {
     "stop_fg":        "#1a3a4a",
 }
 
+# ── DPI 感知字体缩放 ──
+FONT_SCALE = 1.0
+
+def _init_fonts(root):
+    """根据 DPI 缩放字体"""
+    global FONT_SCALE, FONT_TITLE, FONT_LABEL, FONT_ENTRY, FONT_LOG, FONT_BTN, FONT_HEADING
+    try:
+        scale = float(root.tk.call('tk', 'scaling'))
+        if sys.platform == "win32":
+            FONT_SCALE = max(1.0, scale / 1.0)
+        elif sys.platform == "darwin":
+            FONT_SCALE = max(1.0, scale / 1.333)
+        else:
+            FONT_SCALE = 1.0
+    except Exception:
+        FONT_SCALE = 1.0
+
+    def fs(size):
+        return max(int(size * FONT_SCALE + 0.5), size)
+
+    FONT_TITLE   = ("Helvetica", fs(22), "bold")
+    FONT_LABEL   = ("Helvetica", fs(11))
+    FONT_ENTRY   = ("Helvetica", fs(11))
+    FONT_LOG     = ("Consolas", fs(11))
+    FONT_BTN     = ("Helvetica", fs(12))
+    FONT_HEADING = ("Helvetica", fs(12), "bold")
+
+
+# 初始默认值（`_init_fonts` 会覆盖）
 FONT_TITLE = ("Helvetica", 22, "bold")
 FONT_LABEL = ("Helvetica", 11)
 FONT_ENTRY = ("Helvetica", 11)
@@ -982,6 +1011,8 @@ def main():
             ctypes.windll.shcore.SetProcessDpiAwareness(1)
         except Exception:
             pass
+    # 根据 DPI 缩放字体
+    _init_fonts(root)
     BioPaperMinerApp(root)
     root.mainloop()
 
