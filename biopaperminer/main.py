@@ -15,7 +15,14 @@ Tab 补全支持：
 
 import sys
 import os
+import io
 from pathlib import Path
+
+# Windows 终端兼容：emoji 等无法在 GBK 编码的字符自动替换为 ?
+if sys.platform == "win32":
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, 'reconfigure'):
+            stream.reconfigure(errors='replace')
 
 # 确保可以找到项目模块
 _BASE = Path(__file__).resolve().parent  # biopaperminer/
