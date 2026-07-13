@@ -973,6 +973,26 @@ class BioPaperMinerApp:
                 cmd += ["--analysis-json", aj_path]
         self._exec_cmd(cmd, p)
 
+    def _do_settings(self, p: ModulePanel):
+        from biopaperminer.config_editor import save
+        val = p._font_var.get()
+        save({"FONT_SCALE": val})
+        global FONT_SCALE
+        scale = float(val)
+        try:
+            dpi = float(p._root.tk.call('tk', 'scaling'))
+            if sys.platform == "win32":
+                dpi = max(1.0, dpi)
+            elif sys.platform == "darwin":
+                dpi = max(1.0, dpi / 1.333)
+            else:
+                dpi = 1.0
+        except Exception:
+            dpi = 1.0
+        FONT_SCALE = dpi * scale
+        p.log(f"字体大小已设置为 {val} 倍", "success")
+        p.log("请重启程序以完全应用新字体大小", "warning")
+
     def _do_config(self, p: ModulePanel):
         from biopaperminer.config_editor import EDITABLE_FIELDS, save
 

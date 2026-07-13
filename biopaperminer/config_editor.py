@@ -24,8 +24,6 @@ EDITABLE_FIELDS = [
     ("LLM_MAX_TOKENS",      "最大输出 Tokens",      "number", "8192",   "*"),
     ("MAX_TEXT_LENGTH",     "最大文本长度(字符)",    "number", "300000", "*"),
     ("MAX_WORKERS",         "并发处理数",           "number", "2",      "*"),
-    ("FONT_SCALE",          "字体大小",            "select", "1.0",    "*",
-     ["0.8", "0.9", "1.0", "1.1", "1.2", "1.3", "1.5", "2.0"]),
 ]
 
 
