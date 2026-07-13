@@ -19,7 +19,7 @@ if str(_ROOT) not in sys.path:
 
 # 有命令行参数 → 走 CLI（供打包后的子进程调用）
 # 无参数 → 打开 GUI
-if len(sys.argv) > 1 and sys.argv[1] in ("pipeline", "search", "download", "refs", "tui", "gui", "--help", "-h"):
+if len(sys.argv) > 1 and sys.argv[1] in ("pipeline", "search", "download", "refs", "rename", "tui", "gui", "--help", "-h"):
     from biopaperminer.pipeline import main as cli_main
     cli_main()
 else:

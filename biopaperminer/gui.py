@@ -879,15 +879,6 @@ class BioPaperMinerApp:
             aj_path = p._analysis_json_var.get().strip() if hasattr(p, "_analysis_json_var") else ""
             if aj_path and Path(aj_path).exists():
                 cmd += ["--analysis-json", aj_path]
-        if use_analysis:
-            # 自动查找最近的 analysis_results.json
-            for candidate in [Path(pdf_dir).parent / "pdf_analysis_results",
-                              Path("./pdf_analysis_results"),
-                              Path(".")]:
-                aj = candidate / "analysis_results.json"
-                if aj.exists():
-                    cmd += ["--analysis-json", str(aj)]
-                    break
         self._exec_cmd(cmd, p)
 
     def _do_config(self, p: ModulePanel):
