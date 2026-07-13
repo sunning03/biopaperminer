@@ -14,7 +14,14 @@ import os
 import sys
 import time
 import threading
+import io
 from pathlib import Path
+
+# Windows 终端兼容
+if sys.platform == "win32":
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, 'reconfigure'):
+            stream.reconfigure(errors='replace')
 from dataclasses import asdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List, Dict, Any, Optional
