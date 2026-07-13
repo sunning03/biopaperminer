@@ -429,7 +429,6 @@ class BioPaperMinerApp:
             lbl.bind("<Enter>", lambda e, l=lbl: l.config(bg=COLORS["bg_button_hover"]))
             lbl.bind("<Leave>", lambda e, l=lbl: l.config(bg=COLORS["bg_button"]))
             self._nav_labels[key] = lbl
-            self.nav_items.append(rb)
 
         # ── 右侧内容区 ──
         self.content = tk.Frame(main, bg=COLORS["bg_primary"])
