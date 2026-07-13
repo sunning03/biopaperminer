@@ -795,6 +795,7 @@ class BioPaperMinerApp:
             "download": self._do_download,
             "pipeline": self._do_pipeline,
             "report":   self._do_report,
+            "settings": self._do_settings,
             "config":   self._do_config,
             "refs":     self._do_refs,
             "rename":   self._do_rename,
@@ -977,21 +978,16 @@ class BioPaperMinerApp:
         from biopaperminer.config_editor import save
         val = p._font_var.get()
         save({"FONT_SCALE": val})
-        global FONT_SCALE
         scale = float(val)
+        # 实时应用：通过 tk scaling 缩放所有控件
+        base_dpi = 1.0
         try:
-            dpi = float(p._root.tk.call('tk', 'scaling'))
-            if sys.platform == "win32":
-                dpi = max(1.0, dpi)
-            elif sys.platform == "darwin":
-                dpi = max(1.0, dpi / 1.333)
-            else:
-                dpi = 1.0
+            base_dpi = float(p._root.tk.call('tk', 'scaling'))
         except Exception:
-            dpi = 1.0
-        FONT_SCALE = dpi * scale
-        p.log(f"字体大小已设置为 {val} 倍", "success")
-        p.log("请重启程序以完全应用新字体大小", "warning")
+            pass
+        new_scaling = base_dpi * scale
+        p._root.tk.call('tk', 'scaling', new_scaling)
+        p.log(f"字体大小已实时调整为 {val} 倍", "success")
 
     def _do_config(self, p: ModulePanel):
         from biopaperminer.config_editor import EDITABLE_FIELDS, save
