@@ -173,6 +173,34 @@ class ModulePanel:
         self.log_text.delete(1.0, tk.END)
         self.log_text.config(state=tk.DISABLED)
 
+    # ── 粘贴路径右键菜单（替代拖放） ──
+
+    def _add_path_menu(self, widget, var: tk.StringVar):
+        """给路径输入框添加右键粘贴菜单"""
+        menu = tk.Menu(widget, tearoff=0, bg=COLORS["bg_panel"],
+                       fg=COLORS["fg_text"], font=("Helvetica", 10))
+        menu.add_command(label="粘贴路径", command=lambda: self._paste_path(var))
+        menu.add_separator()
+        menu.add_command(label="清除", command=lambda: var.set(""))
+
+        def show_menu(event):
+            menu.tk_popup(event.x_root, event.y_root)
+
+        widget.bind("<Button-3>", show_menu)
+
+    def _paste_path(self, var: tk.StringVar):
+        """从剪贴板粘贴路径"""
+        try:
+            clip = self._root.clipboard_get()
+            # 取第一行（多行粘贴时只取第一行）
+            path = clip.strip().split('\n')[0].strip()
+            # 去掉首尾引号
+            path = path.strip('"').strip("'")
+            if path:
+                var.set(path)
+        except Exception:
+            pass
+
     # ── 参数 ──
 
     def add_field(self, row: int, label: str, default: str = "",
@@ -201,6 +229,9 @@ class ModulePanel:
             )
 
         widget.grid(row=row, column=1, sticky=tk.EW, pady=2, padx=(5, 0))
+        # 给路径类型字段添加右键粘贴菜单
+        if "目录" in label or "文件" in label or "路径" in label or "输出" in label:
+            self._add_path_menu(widget, var)
 
         btn = None
         if "目录" in label:
