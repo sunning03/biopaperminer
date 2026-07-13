@@ -61,8 +61,20 @@ COLORS = {
     "stop_fg":        "#FFFFFF",   # 停止按钮文字 - 白
 }
 
+# ── 跨平台字体选择 ──
+def _get_font_family():
+    """根据系统选择字体：Windows 用 Arial+黑体，macOS 用 Helvetica，Linux 用 DejaVu Sans"""
+    if sys.platform == "win32":
+        return "Arial"  # Windows 上 Arial 渲染英文，中文自动回退到微软雅黑/黑体
+    elif sys.platform == "darwin":
+        return "Helvetica"
+    else:
+        return "DejaVu Sans"
+
 # ── DPI 感知字体缩放（用户可额外调节） ──
 FONT_SCALE = 1.0
+
+FONT_FAMILY = _get_font_family()
 
 def _load_font_scale():
     """从配置加载用户字体缩放倍数"""
@@ -92,21 +104,21 @@ def _init_fonts(root):
     def fs(size):
         return max(int(size * FONT_SCALE + 0.5), size)
 
-    FONT_TITLE   = ("Helvetica", fs(22), "bold")
-    FONT_LABEL   = ("Helvetica", fs(11), "bold")
-    FONT_ENTRY   = ("Helvetica", fs(11))
+    FONT_TITLE   = (FONT_FAMILY, fs(22), "bold")
+    FONT_LABEL   = (FONT_FAMILY, fs(11), "bold")
+    FONT_ENTRY   = (FONT_FAMILY, fs(11))
     FONT_LOG     = ("Consolas", fs(11))
-    FONT_BTN     = ("Helvetica", fs(12))
-    FONT_HEADING = ("Helvetica", fs(12), "bold")
+    FONT_BTN     = (FONT_FAMILY, fs(12))
+    FONT_HEADING = (FONT_FAMILY, fs(12), "bold")
 
 
 # 初始默认值（`_init_fonts` 会覆盖）
-FONT_TITLE = ("Helvetica", 22, "bold")
-FONT_LABEL = ("Helvetica", 11, "bold")
-FONT_ENTRY = ("Helvetica", 11)
+FONT_TITLE = (FONT_FAMILY, 22, "bold")
+FONT_LABEL = (FONT_FAMILY, 11, "bold")
+FONT_ENTRY = (FONT_FAMILY, 11)
 FONT_LOG   = ("Consolas", 11)
-FONT_BTN   = ("Helvetica", 12)
-FONT_HEADING = ("Helvetica", 12, "bold")
+FONT_BTN   = (FONT_FAMILY, 12)
+FONT_HEADING = (FONT_FAMILY, 12, "bold")
 
 
 # ═══════════════════════════════════════════════════════
@@ -1084,12 +1096,12 @@ class BioPaperMinerApp:
         def fs(size):
             return max(int(size * FONT_SCALE + 0.5), size)
 
-        FONT_TITLE   = ("Helvetica", fs(22), "bold")
-        FONT_LABEL   = ("Helvetica", fs(11), "bold")
-        FONT_ENTRY   = ("Helvetica", fs(11))
+        FONT_TITLE   = (FONT_FAMILY, fs(22), "bold")
+        FONT_LABEL   = (FONT_FAMILY, fs(11), "bold")
+        FONT_ENTRY   = (FONT_FAMILY, fs(11))
         FONT_LOG     = ("Consolas", fs(11))
-        FONT_BTN     = ("Helvetica", fs(12))
-        FONT_HEADING = ("Helvetica", fs(12), "bold")
+        FONT_BTN     = (FONT_FAMILY, fs(12))
+        FONT_HEADING = (FONT_FAMILY, fs(12), "bold")
 
         # 实时应用到所有现有控件
         font_map = {
