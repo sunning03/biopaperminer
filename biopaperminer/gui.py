@@ -93,7 +93,7 @@ def _init_fonts(root):
         return max(int(size * FONT_SCALE + 0.5), size)
 
     FONT_TITLE   = ("Helvetica", fs(22), "bold")
-    FONT_LABEL   = ("Helvetica", fs(11))
+    FONT_LABEL   = ("Helvetica", fs(11), "bold")
     FONT_ENTRY   = ("Helvetica", fs(11))
     FONT_LOG     = ("Consolas", fs(11))
     FONT_BTN     = ("Helvetica", fs(12))
@@ -102,7 +102,7 @@ def _init_fonts(root):
 
 # 初始默认值（`_init_fonts` 会覆盖）
 FONT_TITLE = ("Helvetica", 22, "bold")
-FONT_LABEL = ("Helvetica", 11)
+FONT_LABEL = ("Helvetica", 11, "bold")
 FONT_ENTRY = ("Helvetica", 11)
 FONT_LOG   = ("Consolas", 11)
 FONT_BTN   = ("Helvetica", 12)
@@ -706,7 +706,7 @@ class BioPaperMinerApp:
         p.param_frame.columnconfigure(1, weight=1)
         tk.Label(p.param_frame,
                  text="提示: 可选择预设值或直接输入(0.5~3.0)，点击 [运行] 生效",
-                 font=FONT_LABEL, fg=COLORS["fg_dim"],
+                 font=FONT_LABEL, fg=COLORS["fg_text"],
                  bg=COLORS["bg_primary"]).grid(
             row=1, column=0, columnspan=3, sticky=tk.W, pady=(4,0))
 
@@ -1085,7 +1085,7 @@ class BioPaperMinerApp:
             return max(int(size * FONT_SCALE + 0.5), size)
 
         FONT_TITLE   = ("Helvetica", fs(22), "bold")
-        FONT_LABEL   = ("Helvetica", fs(11))
+        FONT_LABEL   = ("Helvetica", fs(11), "bold")
         FONT_ENTRY   = ("Helvetica", fs(11))
         FONT_LOG     = ("Consolas", fs(11))
         FONT_BTN     = ("Helvetica", fs(12))
