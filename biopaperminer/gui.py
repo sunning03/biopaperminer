@@ -460,19 +460,23 @@ class BioPaperMinerApp:
         btn_bar = tk.Frame(self.content, bg=COLORS["bg_primary"])
         btn_bar.pack(fill=tk.X, pady=(0, 4))
 
-        self.run_btn = tk.Button(btn_bar, text="运行",
+        self.run_btn = tk.Label(btn_bar, text="  运行  ",
             font=("Helvetica", 15, "bold"), fg="#1F2937",
-            bg=COLORS["run_bg"], activebackground="#388E3C",
-            relief=tk.RAISED, bd=1, cursor="hand2", width=14, height=1,
-            command=self._on_run)
+            bg=COLORS["run_bg"], padx=20, pady=6, cursor="hand2",
+            relief=tk.RAISED, bd=1)
         self.run_btn.pack(side=tk.LEFT)
+        self.run_btn.bind("<Button-1>", lambda e: self._on_run())
+        self.run_btn.bind("<Enter>", lambda e: self.run_btn.config(bg="#388E3C"))
+        self.run_btn.bind("<Leave>", lambda e: self.run_btn.config(bg=COLORS["run_bg"]))
 
-        self.stop_btn = tk.Button(btn_bar, text="停止",
+        self.stop_btn = tk.Label(btn_bar, text="  停止  ",
             font=("Helvetica", 15, "bold"), fg="#FFFFFF",
-            bg="#f05a46", activebackground="#D32F2F",
-            relief=tk.RAISED, bd=1, cursor="hand2", width=14, height=1,
-            command=self._on_stop, state=tk.DISABLED)
+            bg="#f05a46", padx=20, pady=6, cursor="hand2",
+            relief=tk.RAISED, bd=1)
         self.stop_btn.pack(side=tk.LEFT, padx=(8, 0))
+        self.stop_btn.bind("<Button-1>", lambda e: self._on_stop())
+        self.stop_btn.bind("<Enter>", lambda e: self.stop_btn.config(bg="#D32F2F"))
+        self.stop_btn.bind("<Leave>", lambda e: self.stop_btn.config(bg="#f05a46"))
 
         # 默认激活搜索
         self._on_nav_click("search")
@@ -825,8 +829,8 @@ class BioPaperMinerApp:
         p = self.panels[key]
 
         self._running = True
-        self.run_btn.config(state=tk.DISABLED)
-        self.stop_btn.config(state=tk.NORMAL)
+        self.run_btn.config(bg="#9E9E9E")
+        self.stop_btn.config(bg="#f05a46")
         p.clear_log()
 
         # 绑定执行函数
@@ -861,8 +865,8 @@ class BioPaperMinerApp:
         self._reset_buttons()
 
     def _reset_buttons(self):
-        self.run_btn.config(state=tk.NORMAL)
-        self.stop_btn.config(state=tk.DISABLED)
+        self.run_btn.config(bg=COLORS["run_bg"])
+        self.stop_btn.config(bg="#BDBDBD")
 
     # ── 各模块业务逻辑 ──
 
