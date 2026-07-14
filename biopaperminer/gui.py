@@ -110,7 +110,7 @@ def _init_fonts(root):
     FONT_LOG     = (FONT_FAMILY, fs(13))
     FONT_BTN     = (FONT_FAMILY, fs(14))
     FONT_HEADING = (FONT_FAMILY, fs(14), "bold")
-    FONT_CB      = (FONT_FAMILY, fs(14))
+    FONT_CB      = (FONT_FAMILY, fs(16))
 
 
 # 初始默认值（`_init_fonts` 会覆盖）
@@ -120,7 +120,7 @@ FONT_ENTRY = (FONT_FAMILY, 13)
 FONT_LOG   = (FONT_FAMILY, 13)
 FONT_BTN   = (FONT_FAMILY, 14)
 FONT_HEADING = (FONT_FAMILY, 14, "bold")
-FONT_CB      = (FONT_FAMILY, 14)
+FONT_CB      = (FONT_FAMILY, 16)
 
 
 # ═══════════════════════════════════════════════════════
@@ -606,7 +606,8 @@ class BioPaperMinerApp:
                   "font": FONT_CB, "selectcolor": "#FFFFFF",
                   "activebackground": COLORS["bg_primary"],
                   "highlightthickness": 1, "highlightcolor": "#000000",
-                  "highlightbackground": "#000000"}
+                  "highlightbackground": "#000000",
+                  "padx": 6, "pady": 4}
         tk.Checkbutton(cb, text="跳过 MinerU 解析", variable=p._skip_mineru,
                        **cb_kw).pack(side=tk.LEFT, padx=(0, 12))
         tk.Checkbutton(cb, text="跳过 LLM 分析", variable=p._skip_llm,
@@ -696,7 +697,8 @@ class BioPaperMinerApp:
                    "font": FONT_CB, "selectcolor": "#FFFFFF",
                    "activebackground": COLORS["bg_primary"],
                    "highlightthickness": 1, "highlightcolor": "#000000",
-                   "highlightbackground": "#000000"}
+                   "highlightbackground": "#000000",
+                   "padx": 6, "pady": 4}
         tk.Checkbutton(cb, text="仅预览，不重命名", variable=p._dry_run,
                        **cb_kw2).pack(side=tk.LEFT)
         p._use_analysis = tk.BooleanVar(value=False)
@@ -1120,7 +1122,7 @@ class BioPaperMinerApp:
         FONT_LOG     = (FONT_FAMILY, fs(13))
         FONT_BTN     = (FONT_FAMILY, fs(14))
         FONT_HEADING = (FONT_FAMILY, fs(14), "bold")
-        FONT_CB      = (FONT_FAMILY, fs(14))
+        FONT_CB      = (FONT_FAMILY, fs(16))
 
         # 更新全局字体（Combobox 下拉列表等）
         try:
