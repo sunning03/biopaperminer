@@ -466,11 +466,9 @@ class BioPaperMinerApp:
         # 配置全局 ttk 样式
         style = ttk.Style()
         style.configure("TCombobox", font=FONT_ENTRY, fieldbackground="#FFFFFF")
-        try:
-            # Combobox 下拉列表字体
-            style.configure("TCombobox.Listbox", font=FONT_ENTRY, foreground="#000000")
-        except Exception:
-            pass
+        # 全局字体设置（影响 Combobox 下拉列表等）
+        self.root.option_add("*Font", FONT_ENTRY)
+        self.root.option_add("*Listbox.font", FONT_ENTRY)
 
         # 初始化各面板参数
         self._init_search_panel()
@@ -1124,11 +1122,12 @@ class BioPaperMinerApp:
         FONT_HEADING = (FONT_FAMILY, fs(14), "bold")
         FONT_CB      = (FONT_FAMILY, fs(14))
 
-        # 更新 ttk 样式（Combobox 等）
+        # 更新全局字体（Combobox 下拉列表等）
         try:
+            self.root.option_add("*Font", FONT_ENTRY)
+            self.root.option_add("*Listbox.font", FONT_ENTRY)
             style = ttk.Style()
             style.configure("TCombobox", font=FONT_ENTRY)
-            style.configure("TCombobox.Listbox", font=FONT_ENTRY, foreground="#000000")
         except Exception:
             pass
 
