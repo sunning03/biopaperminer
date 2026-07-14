@@ -602,6 +602,8 @@ class BioPaperMinerApp:
         cb.grid(row=3, column=0, columnspan=3, sticky=tk.W, pady=6)
 
         p._skip_mineru = tk.BooleanVar(value=False)
+        p._skip_llm = tk.BooleanVar(value=False)
+        p._retry_failed = tk.BooleanVar(value=False)
         cb_kw = {"bg": COLORS["bg_primary"], "fg": "#000000",
                   "font": FONT_CB, "selectcolor": "#FFFFFF",
                   "activebackground": COLORS["bg_primary"],
