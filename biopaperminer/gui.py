@@ -208,7 +208,7 @@ class ModulePanel:
     def _add_path_menu(self, widget, var: tk.StringVar):
         """给路径输入框添加右键粘贴菜单"""
         menu = tk.Menu(widget, tearoff=0, bg=COLORS["bg_panel"],
-                       fg=COLORS["fg_text"], font=("Helvetica", 10))
+                       fg=COLORS["fg_text"], font=(FONT_FAMILY, 10))
         menu.add_command(label="粘贴路径", command=lambda: self._paste_path(var))
         menu.add_separator()
         menu.add_command(label="清除", command=lambda: var.set(""))
@@ -285,7 +285,7 @@ class ModulePanel:
         btn = None
         if "目录" in label:
             btn = tk.Button(
-                self.param_frame, text="📂", font=("Helvetica", 11),
+                self.param_frame, text="📂", font=(FONT_FAMILY, 11),
                 fg=COLORS["fg_text"], bg=COLORS["bg_button"],
                 relief=tk.RAISED, bd=1, cursor="hand2",
                 command=lambda v=var: self._browse(v),
@@ -295,7 +295,7 @@ class ModulePanel:
 
         elif file_ext:
             btn = tk.Button(
-                self.param_frame, text="📄", font=("Helvetica", 11),
+                self.param_frame, text="📄", font=(FONT_FAMILY, 11),
                 fg=COLORS["fg_text"], bg=COLORS["bg_button"],
                 relief=tk.RAISED, bd=1, cursor="hand2",
                 command=lambda v=var, ext=file_ext: self._browse_files(v, ext),
@@ -306,7 +306,7 @@ class ModulePanel:
         elif secret:
             widget.config(show="*")
             btn = tk.Button(
-                self.param_frame, text="👁", font=("Helvetica", 11),
+                self.param_frame, text="👁", font=(FONT_FAMILY, 11),
                 fg=COLORS["fg_text"], bg=COLORS["bg_button"],
                 relief=tk.RAISED, bd=1, cursor="hand2",
                 width=2,
@@ -410,7 +410,7 @@ class BioPaperMinerApp:
         tk.Label(hdr, text="BioPaperMiner", font=FONT_TITLE,
                  fg="#FFFFFF", bg=COLORS["bg_header"]).pack(side=tk.LEFT)
         tk.Label(hdr, text="PubMed 检索 → PDF 下载 → MinerU 解析 → LLM 分析 → 报告生成",
-                 font=("Helvetica", 11), fg="#FFFFFF",
+                 font=(FONT_FAMILY, 11), fg="#FFFFFF",
                  bg=COLORS["bg_header"]).pack(side=tk.LEFT, padx=(10, 0))
 
         # 主内容
@@ -485,8 +485,8 @@ class BioPaperMinerApp:
         btn_bar.pack(fill=tk.X, pady=(0, 4))
 
         self.run_btn = tk.Label(btn_bar, text="  运行  ",
-            font=("Helvetica", 15, "bold"), fg="#1F2937",
-            bg=COLORS["run_bg"], padx=20, pady=6, cursor="hand2",
+            font=(FONT_FAMILY, 18, "bold"), fg="#1F2937",
+            bg=COLORS["run_bg"], padx=30, pady=10, cursor="hand2",
             relief=tk.RAISED, bd=1)
         self.run_btn.pack(side=tk.LEFT)
         self.run_btn.bind("<Button-1>", lambda e: self._on_run())
@@ -494,8 +494,8 @@ class BioPaperMinerApp:
         self.run_btn.bind("<Leave>", lambda e: self.run_btn.config(bg=COLORS["run_bg"]))
 
         self.stop_btn = tk.Label(btn_bar, text="  停止  ",
-            font=("Helvetica", 15, "bold"), fg="#FFFFFF",
-            bg="#f05a46", padx=20, pady=6, cursor="hand2",
+            font=(FONT_FAMILY, 18, "bold"), fg="#FFFFFF",
+            bg="#f05a46", padx=30, pady=10, cursor="hand2",
             relief=tk.RAISED, bd=1)
         self.stop_btn.pack(side=tk.LEFT, padx=(8, 0))
         self.stop_btn.bind("<Button-1>", lambda e: self._on_stop())
@@ -551,7 +551,7 @@ class BioPaperMinerApp:
                                 fg=COLORS["fg_text"], bg=COLORS["bg_entry"],
                                 relief=tk.RAISED, bd=1, width=45)
         p._dir_entry.grid(row=1, column=1, sticky=tk.EW, pady=2, padx=(5, 0))
-        p._dir_btn = tk.Button(pf, text="📂", font=("Helvetica", 11),
+        p._dir_btn = tk.Button(pf, text="📂", font=(FONT_FAMILY, 11),
                                fg=COLORS["fg_text"], bg=COLORS["bg_button"],
                                relief=tk.RAISED, bd=1, cursor="hand2",
                                command=lambda v=p._dir_var: p._browse(v), width=2)
@@ -562,7 +562,7 @@ class BioPaperMinerApp:
         p._file_entry = tk.Entry(pf, textvariable=p._file_var, font=FONT_ENTRY,
                                  fg=COLORS["fg_text"], bg=COLORS["bg_entry"],
                                  relief=tk.RAISED, bd=1, width=45)
-        p._file_btn = tk.Button(pf, text="📄", font=("Helvetica", 11),
+        p._file_btn = tk.Button(pf, text="📄", font=(FONT_FAMILY, 11),
                                 fg=COLORS["fg_text"], bg=COLORS["bg_button"],
                                 relief=tk.RAISED, bd=1, cursor="hand2",
                                 command=lambda v=p._file_var: p._browse_files(v, "*.pdf"),
@@ -681,7 +681,7 @@ class BioPaperMinerApp:
                 p._refs_file_var.set(";".join(files))
                 ModulePanel._last_dir = str(Path(files[0]).parent)
 
-        tk.Button(pf, text="📄", font=("Helvetica", 11),
+        tk.Button(pf, text="📄", font=(FONT_FAMILY, 11),
                   fg=COLORS["fg_text"], bg=COLORS["bg_button"],
                   relief=tk.RAISED, bd=1, cursor="hand2",
                   command=browse_refs_file, width=2).grid(
@@ -701,7 +701,7 @@ class BioPaperMinerApp:
                                           relief=tk.RAISED, bd=1, width=45)
         p._analysis_json_label = tk.Label(p.param_frame, text="分析结果 JSON:", font=FONT_LABEL,
                                           fg=COLORS["fg_text"], bg=COLORS["bg_primary"])
-        p._analysis_json_btn = tk.Button(p.param_frame, text="📄", font=("Helvetica", 11),
+        p._analysis_json_btn = tk.Button(p.param_frame, text="📄", font=(FONT_FAMILY, 11),
                                          fg=COLORS["fg_text"], bg=COLORS["bg_button"],
                                          relief=tk.RAISED, bd=1, cursor="hand2",
                                          command=lambda v=p._analysis_json_var: p._browse_files(v, "*.json"),
