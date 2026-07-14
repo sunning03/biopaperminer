@@ -104,23 +104,23 @@ def _init_fonts(root):
     def fs(size):
         return max(int(size * FONT_SCALE + 0.5), size)
 
-    FONT_TITLE   = (FONT_FAMILY, fs(22), "bold")
-    FONT_LABEL   = (FONT_FAMILY, fs(11), "bold")
-    FONT_ENTRY   = (FONT_FAMILY, fs(11))
-    FONT_LOG     = ("Consolas", fs(11))
-    FONT_BTN     = (FONT_FAMILY, fs(12))
-    FONT_HEADING = (FONT_FAMILY, fs(12), "bold")
-    FONT_CB      = (FONT_FAMILY, fs(13))
+    FONT_TITLE   = (FONT_FAMILY, fs(24), "bold")
+    FONT_LABEL   = (FONT_FAMILY, fs(13), "bold")
+    FONT_ENTRY   = (FONT_FAMILY, fs(13))
+    FONT_LOG     = (FONT_FAMILY, fs(13))
+    FONT_BTN     = (FONT_FAMILY, fs(14))
+    FONT_HEADING = (FONT_FAMILY, fs(14), "bold")
+    FONT_CB      = (FONT_FAMILY, fs(14))
 
 
 # 初始默认值（`_init_fonts` 会覆盖）
-FONT_TITLE = (FONT_FAMILY, 22, "bold")
-FONT_LABEL = (FONT_FAMILY, 11, "bold")
-FONT_ENTRY = (FONT_FAMILY, 11)
-FONT_LOG   = ("Consolas", 11)
-FONT_BTN   = (FONT_FAMILY, 12)
-FONT_HEADING = (FONT_FAMILY, 12, "bold")
-FONT_CB      = (FONT_FAMILY, 13)
+FONT_TITLE = (FONT_FAMILY, 24, "bold")
+FONT_LABEL = (FONT_FAMILY, 13, "bold")
+FONT_ENTRY = (FONT_FAMILY, 13)
+FONT_LOG   = (FONT_FAMILY, 13)
+FONT_BTN   = (FONT_FAMILY, 14)
+FONT_HEADING = (FONT_FAMILY, 14, "bold")
+FONT_CB      = (FONT_FAMILY, 14)
 
 
 # ═══════════════════════════════════════════════════════
@@ -1116,13 +1116,13 @@ class BioPaperMinerApp:
         def fs(size):
             return max(int(size * FONT_SCALE + 0.5), size)
 
-        FONT_TITLE   = (FONT_FAMILY, fs(22), "bold")
-        FONT_LABEL   = (FONT_FAMILY, fs(11), "bold")
-        FONT_ENTRY   = (FONT_FAMILY, fs(11))
-        FONT_LOG     = ("Consolas", fs(11))
-        FONT_BTN     = (FONT_FAMILY, fs(12))
-        FONT_HEADING = (FONT_FAMILY, fs(12), "bold")
-        FONT_CB      = (FONT_FAMILY, fs(13))
+        FONT_TITLE   = (FONT_FAMILY, fs(24), "bold")
+        FONT_LABEL   = (FONT_FAMILY, fs(13), "bold")
+        FONT_ENTRY   = (FONT_FAMILY, fs(13))
+        FONT_LOG     = (FONT_FAMILY, fs(13))
+        FONT_BTN     = (FONT_FAMILY, fs(14))
+        FONT_HEADING = (FONT_FAMILY, fs(14), "bold")
+        FONT_CB      = (FONT_FAMILY, fs(14))
 
         # 更新 ttk 样式（Combobox 等）
         try:
