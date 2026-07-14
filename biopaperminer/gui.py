@@ -602,18 +602,38 @@ class BioPaperMinerApp:
         p._skip_mineru = tk.BooleanVar(value=False)
         p._skip_llm = tk.BooleanVar(value=False)
         p._retry_failed = tk.BooleanVar(value=False)
-        cb_kw = {"bg": COLORS["bg_primary"], "fg": "#000000",
-                  "font": FONT_CB, "selectcolor": "#FFFFFF",
-                  "activebackground": COLORS["bg_primary"],
-                  "highlightthickness": 1, "highlightcolor": "#000000",
-                  "highlightbackground": "#000000",
-                  "padx": 6, "pady": 4}
-        tk.Checkbutton(cb, text="跳过 MinerU 解析", variable=p._skip_mineru,
-                       **cb_kw).pack(side=tk.LEFT, padx=(0, 12))
-        tk.Checkbutton(cb, text="跳过 LLM 分析", variable=p._skip_llm,
-                       **cb_kw).pack(side=tk.LEFT, padx=(0, 12))
-        tk.Checkbutton(cb, text="只重试失败文件", variable=p._retry_failed,
-                       **cb_kw).pack(side=tk.LEFT)
+        def make_cb(parent, text, var):
+            """创建自定义大复选框（Canvas 绘制方块 + Label 文字）"""
+            f = tk.Frame(parent, bg=COLORS["bg_primary"])
+            f.pack(side=tk.LEFT, padx=(0, 12))
+            c = tk.Canvas(f, width=22, height=22, bd=0, highlightthickness=0,
+                          bg=COLORS["bg_primary"])
+            c.pack(side=tk.LEFT)
+            # 绘制复选框方块
+            rect = c.create_rectangle(2, 2, 20, 20, outline="#000000", width=2,
+                                       fill="#FFFFFF", tags="box")
+            check = c.create_text(11, 11, text="", font=("SimSun", 14),
+                                  fill="#000000", tags="check")
+            lbl = tk.Label(f, text=text, font=FONT_CB, fg="#000000",
+                           bg=COLORS["bg_primary"], cursor="hand2")
+            lbl.pack(side=tk.LEFT, padx=(4, 0))
+            def toggle(event=None):
+                var.set(not var.get())
+                _update()
+            def _update():
+                if var.get():
+                    c.itemconfig("check", text="\u2713")
+                else:
+                    c.itemconfig("check", text="")
+            c.tag_bind("box", "<Button-1>", toggle)
+            c.tag_bind("check", "<Button-1>", toggle)
+            lbl.bind("<Button-1>", toggle)
+            _update()
+            return f
+
+        make_cb(cb, "跳过 MinerU 解析", p._skip_mineru)
+        make_cb(cb, "跳过 LLM 分析", p._skip_llm)
+        make_cb(cb, "只重试失败文件", p._retry_failed)
 
     def _init_report_panel(self):
         p = self.panels["report"]
@@ -693,20 +713,34 @@ class BioPaperMinerApp:
         cb = tk.Frame(p.param_frame, bg=COLORS["bg_primary"])
         cb.grid(row=2, column=0, columnspan=3, sticky=tk.W, pady=6)
         p._dry_run = tk.BooleanVar(value=False)
-        cb_kw2 = {"bg": COLORS["bg_primary"], "fg": "#000000",
-                   "font": FONT_CB, "selectcolor": "#FFFFFF",
-                   "activebackground": COLORS["bg_primary"],
-                   "highlightthickness": 1, "highlightcolor": "#000000",
-                   "highlightbackground": "#000000",
-                   "padx": 6, "pady": 4}
-        tk.Checkbutton(cb, text="仅预览，不重命名", variable=p._dry_run,
-                       **cb_kw2).pack(side=tk.LEFT)
         p._use_analysis = tk.BooleanVar(value=False)
-        tk.Checkbutton(cb, text="使用已有分析结果加速", variable=p._use_analysis,
-                       **cb_kw2).pack(side=tk.LEFT, padx=(10,0))
         p._copy_files = tk.BooleanVar(value=False)
-        tk.Checkbutton(cb, text="复制文件（而不是移动）", variable=p._copy_files,
-                       **cb_kw2).pack(side=tk.LEFT, padx=(10,0))
+        def make_cb2(parent, text, var):
+            f = tk.Frame(parent, bg=COLORS["bg_primary"])
+            f.pack(side=tk.LEFT, padx=(10, 0))
+            c = tk.Canvas(f, width=22, height=22, bd=0, highlightthickness=0,
+                          bg=COLORS["bg_primary"])
+            c.pack(side=tk.LEFT)
+            c.create_rectangle(2, 2, 20, 20, outline="#000000", width=2,
+                               fill="#FFFFFF", tags="box")
+            c.create_text(11, 11, text="", font=("SimSun", 14),
+                          fill="#000000", tags="check")
+            lbl = tk.Label(f, text=text, font=FONT_CB, fg="#000000",
+                           bg=COLORS["bg_primary"], cursor="hand2")
+            lbl.pack(side=tk.LEFT, padx=(4, 0))
+            def toggle(event=None):
+                var.set(not var.get())
+                _update()
+            def _update():
+                c.itemconfig("check", text="\u2713" if var.get() else "")
+            c.tag_bind("box", "<Button-1>", toggle)
+            c.tag_bind("check", "<Button-1>", toggle)
+            lbl.bind("<Button-1>", toggle)
+            _update()
+
+        make_cb2(cb, "仅预览，不重命名", p._dry_run)
+        make_cb2(cb, "使用已有分析结果加速", p._use_analysis)
+        make_cb2(cb, "复制文件（而不是移动）", p._copy_files)
 
         # 勾选"使用分析结果"时显隐 JSON 路径行
         def toggle_json_field(*_):
