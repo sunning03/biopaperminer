@@ -65,7 +65,7 @@ COLORS = {
 def _get_font_family():
     """根据系统选择字体：Windows Arial(中文自动黑体)，macOS Helvetica，Linux DejaVu Sans"""
     if sys.platform == "win32":
-        return "Arial"       # 英文 Arial，中文自动用黑体(系统自动回退)
+        return "SimSun"      # 宋体（中英文统一用宋体）
     elif sys.platform == "darwin":
         return "Helvetica"
     else:
