@@ -1124,6 +1124,14 @@ class BioPaperMinerApp:
         FONT_HEADING = (FONT_FAMILY, fs(12), "bold")
         FONT_CB      = (FONT_FAMILY, fs(13))
 
+        # 更新 ttk 样式（Combobox 等）
+        try:
+            style = ttk.Style()
+            style.configure("TCombobox", font=FONT_ENTRY)
+            style.configure("TCombobox.Listbox", font=FONT_ENTRY, foreground="#000000")
+        except Exception:
+            pass
+
         # 实时应用到所有现有控件
         font_map = {
             'title': FONT_TITLE, 'label': FONT_LABEL, 'entry': FONT_ENTRY,
