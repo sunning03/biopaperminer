@@ -47,13 +47,13 @@ COLORS = {
     "bg_entry":       "#FFFFFF",   # 输入框 - 纯白
     "bg_log":         "#F7F9F7",   # 日志区 - 柔和米白
     "bg_panel":       "#F0F4F0",   # 面板标题 - 极浅绿灰
-    "fg_text":        "#4B5563",   # 正文 - 柔和深灰
-    "fg_heading":     "#1F2937",   # 标题文字 - 深灰黑
-    "fg_accent":      "#1E88E5",   # 强调色 - 信息蓝
+    "fg_text":        "#000000",   # 正文 - 纯黑
+    "fg_heading":     "#000000",   # 标题文字 - 纯黑
+    "fg_accent":      "#000000",   # 强调色 - 纯黑
     "fg_success":     "#2E7D32",   # 成功文字 - 森林绿
     "fg_error":       "#E53935",   # 错误文字 - 红
     "fg_warning":     "#FFB300",   # 警告文字 - 琥珀
-    "fg_dim":         "#6B7280",   # 辅助文字 - 中灰
+    "fg_dim":         "#000000",   # 辅助文字 - 纯黑
     "border":         "#E6E8E6",   # 边框 - 极淡灰
     "run_bg":         "#2E7D32",   # 运行按钮 - 森林绿
     "run_fg":         "#1F2937",   # 运行按钮文字 - 深灰黑
@@ -63,9 +63,9 @@ COLORS = {
 
 # ── 跨平台字体选择 ──
 def _get_font_family():
-    """根据系统选择字体：Windows 用 Arial+黑体，macOS 用 Helvetica，Linux 用 DejaVu Sans"""
+    """根据系统选择字体：Windows Arial(中文自动黑体)，macOS Helvetica，Linux DejaVu Sans"""
     if sys.platform == "win32":
-        return "Arial"  # Windows 上 Arial 渲染英文，中文自动回退到微软雅黑/黑体
+        return "Arial"       # 英文 Arial，中文自动用黑体(系统自动回退)
     elif sys.platform == "darwin":
         return "Helvetica"
     else:
@@ -86,7 +86,7 @@ def _load_font_scale():
 
 def _init_fonts(root):
     """根据 DPI 缩放字体"""
-    global FONT_SCALE, FONT_TITLE, FONT_LABEL, FONT_ENTRY, FONT_LOG, FONT_BTN, FONT_HEADING
+    global FONT_SCALE, FONT_TITLE, FONT_LABEL, FONT_ENTRY, FONT_LOG, FONT_BTN, FONT_HEADING, FONT_CB
     try:
         dpi_scale = float(root.tk.call('tk', 'scaling'))
         if sys.platform == "win32":
@@ -110,6 +110,7 @@ def _init_fonts(root):
     FONT_LOG     = ("Consolas", fs(11))
     FONT_BTN     = (FONT_FAMILY, fs(12))
     FONT_HEADING = (FONT_FAMILY, fs(12), "bold")
+    FONT_CB      = (FONT_FAMILY, fs(13))
 
 
 # 初始默认值（`_init_fonts` 会覆盖）
@@ -119,6 +120,7 @@ FONT_ENTRY = (FONT_FAMILY, 11)
 FONT_LOG   = ("Consolas", 11)
 FONT_BTN   = (FONT_FAMILY, 12)
 FONT_HEADING = (FONT_FAMILY, 12, "bold")
+FONT_CB      = (FONT_FAMILY, 13)
 
 
 # ═══════════════════════════════════════════════════════
@@ -461,6 +463,15 @@ class BioPaperMinerApp:
             "settings": ModulePanel(self.content, self.root, "设置"),
         }
 
+        # 配置全局 ttk 样式
+        style = ttk.Style()
+        style.configure("TCombobox", font=FONT_ENTRY, fieldbackground="#FFFFFF")
+        try:
+            # Combobox 下拉列表字体
+            style.configure("TCombobox.Listbox", font=FONT_ENTRY, foreground="#000000")
+        except Exception:
+            pass
+
         # 初始化各面板参数
         self._init_search_panel()
         self._init_download_panel()
@@ -591,19 +602,17 @@ class BioPaperMinerApp:
         cb.grid(row=3, column=0, columnspan=3, sticky=tk.W, pady=6)
 
         p._skip_mineru = tk.BooleanVar(value=False)
+        cb_kw = {"bg": COLORS["bg_primary"], "fg": "#000000",
+                  "font": FONT_CB, "selectcolor": "#FFFFFF",
+                  "activebackground": COLORS["bg_primary"],
+                  "highlightthickness": 1, "highlightcolor": "#000000",
+                  "highlightbackground": "#000000"}
         tk.Checkbutton(cb, text="跳过 MinerU 解析", variable=p._skip_mineru,
-                       bg=COLORS["bg_primary"], fg=COLORS["fg_text"],
-                       selectcolor=COLORS["bg_button"]).pack(side=tk.LEFT, padx=(0, 12))
-
-        p._skip_llm = tk.BooleanVar(value=False)
+                       **cb_kw).pack(side=tk.LEFT, padx=(0, 12))
         tk.Checkbutton(cb, text="跳过 LLM 分析", variable=p._skip_llm,
-                       bg=COLORS["bg_primary"], fg=COLORS["fg_text"],
-                       selectcolor=COLORS["bg_button"]).pack(side=tk.LEFT, padx=(0, 12))
-
-        p._retry_failed = tk.BooleanVar(value=False)
+                       **cb_kw).pack(side=tk.LEFT, padx=(0, 12))
         tk.Checkbutton(cb, text="只重试失败文件", variable=p._retry_failed,
-                       bg=COLORS["bg_primary"], fg=COLORS["fg_text"],
-                       selectcolor=COLORS["bg_button"]).pack(side=tk.LEFT)
+                       **cb_kw).pack(side=tk.LEFT)
 
     def _init_report_panel(self):
         p = self.panels["report"]
@@ -683,17 +692,19 @@ class BioPaperMinerApp:
         cb = tk.Frame(p.param_frame, bg=COLORS["bg_primary"])
         cb.grid(row=2, column=0, columnspan=3, sticky=tk.W, pady=6)
         p._dry_run = tk.BooleanVar(value=False)
+        cb_kw2 = {"bg": COLORS["bg_primary"], "fg": "#000000",
+                   "font": FONT_CB, "selectcolor": "#FFFFFF",
+                   "activebackground": COLORS["bg_primary"],
+                   "highlightthickness": 1, "highlightcolor": "#000000",
+                   "highlightbackground": "#000000"}
         tk.Checkbutton(cb, text="仅预览，不重命名", variable=p._dry_run,
-                       bg=COLORS["bg_primary"], fg=COLORS["fg_text"],
-                       selectcolor=COLORS["bg_button"]).pack(side=tk.LEFT)
+                       **cb_kw2).pack(side=tk.LEFT)
         p._use_analysis = tk.BooleanVar(value=False)
         tk.Checkbutton(cb, text="使用已有分析结果加速", variable=p._use_analysis,
-                       bg=COLORS["bg_primary"], fg=COLORS["fg_text"],
-                       selectcolor=COLORS["bg_button"]).pack(side=tk.LEFT, padx=(10,0))
+                       **cb_kw2).pack(side=tk.LEFT, padx=(10,0))
         p._copy_files = tk.BooleanVar(value=False)
         tk.Checkbutton(cb, text="复制文件（而不是移动）", variable=p._copy_files,
-                       bg=COLORS["bg_primary"], fg=COLORS["fg_text"],
-                       selectcolor=COLORS["bg_button"]).pack(side=tk.LEFT, padx=(10,0))
+                       **cb_kw2).pack(side=tk.LEFT, padx=(10,0))
 
         # 勾选"使用分析结果"时显隐 JSON 路径行
         def toggle_json_field(*_):
@@ -1038,8 +1049,12 @@ class BioPaperMinerApp:
         """递归更新控件的字体"""
         try:
             cls = type(widget).__name__
-            if cls in ('Label', 'Button', 'Radiobutton', 'Checkbutton'):
+            if cls in ('Label', 'Button', 'Radiobutton'):
                 f = font_map.get('label', font_map.get('btn'))
+                if f:
+                    widget.config(font=f)
+            elif cls == 'Checkbutton':
+                f = font_map.get('cb', font_map.get('btn'))
                 if f:
                     widget.config(font=f)
             elif cls == 'Entry':
@@ -1083,7 +1098,7 @@ class BioPaperMinerApp:
             return
         save({"FONT_SCALE": str(scale)})
         # 重新计算字体
-        global FONT_SCALE, FONT_TITLE, FONT_LABEL, FONT_ENTRY, FONT_LOG, FONT_BTN, FONT_HEADING
+        global FONT_SCALE, FONT_TITLE, FONT_LABEL, FONT_ENTRY, FONT_LOG, FONT_BTN, FONT_HEADING, FONT_CB
         try:
             dpi = float(p._root.tk.call('tk', 'scaling'))
             if sys.platform == "win32":
@@ -1105,11 +1120,13 @@ class BioPaperMinerApp:
         FONT_LOG     = ("Consolas", fs(11))
         FONT_BTN     = (FONT_FAMILY, fs(12))
         FONT_HEADING = (FONT_FAMILY, fs(12), "bold")
+        FONT_CB      = (FONT_FAMILY, fs(13))
 
         # 实时应用到所有现有控件
         font_map = {
             'title': FONT_TITLE, 'label': FONT_LABEL, 'entry': FONT_ENTRY,
             'log': FONT_LOG, 'btn': FONT_BTN, 'heading': FONT_HEADING,
+            'cb': FONT_CB,
         }
         BioPaperMinerApp._apply_all_fonts(p._root, font_map)
         p._root.update()
